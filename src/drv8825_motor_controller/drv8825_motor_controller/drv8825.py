@@ -13,7 +13,7 @@ ControlMode = [
     'softward',
 ]
 
-class DRV8825(Node):
+class DRV8825():
     def __init__(self, dir_pin, step_pin, enable_pin, mode_pins):
         self.dir_pin = dir_pin
         self.step_pin = step_pin        
@@ -78,10 +78,14 @@ class DRV8825(Node):
             self.digital_write(self.step_pin, False)
             time.sleep(stepdelay)
             
+class DRV8825_Node(Node):
+    def __init__():
+        pass
+            
 def main(args=None):
     rclpy.init(args=args)
 
-    drv8825 = DRV8825(dir_pin=13, step_pin=19, enable_pin=12, mode_pins=(16, 17, 20))
+    drv8825 = DRV8825_Node(dir_pin=13, step_pin=19, enable_pin=12, mode_pins=(16, 17, 20))
 
     rclpy.spin(drv8825)
 

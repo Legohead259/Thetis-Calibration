@@ -1,5 +1,8 @@
 #! /bin/bash
 
+# Setup ROS2 to be CLI accessible
+source /opt/ros/iron/setup.bash
+
 # Update the internal packages and upgrade to latest versions
 apt update && apt upgrade -y
 
