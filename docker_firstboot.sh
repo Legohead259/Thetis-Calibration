@@ -20,3 +20,4 @@ git config --global user.email legohead259@gmail.com
 # 1. Python
 # 2. Pylance
 # 3. AutoDocstring
+# 4. CMake Tools
