@@ -33,15 +33,54 @@ More information on ROS2 node arguments can be found [here](https://docs.ros.org
 
 
 Table 1: List of DRV8825 node parameters and their possible values
-| Parameter Name | Default                  | Alt 1                    |
-|----------------|--------------------------|--------------------------|
-| `dir_pin`      | 13                       | 24                       |
-| `step_pin`     | 19                       | 18                       |
-| `enable_pin`   | 12                       | 4                        |
-| `mode_pins`    | (16,17,20)               | (21,22,27)               |
-| `step_mode`    | StepModes.SOFTWARE.value | StepModes.HARDWARE.value |
+| Parameter Name | Default    | Alt 1             |
+|----------------|------------|-------------------|
+| `dir_pin`      | 13         | 24                |
+| `step_pin`     | 19         | 18                |
+| `enable_pin`   | 12         | 4                 |
+| `mode_pins`    | (16,17,20) | (21,22,27)        |
+| `step_mode`    | False      | True              |  
+| `micro_steps`  | 32         | 1, 2, 4, 8, or 16 |
 
 ### Operation
 This node operates by generating a PWM signal at 50% duty cycle to turn on and off the "step" pin of the DRV8825, thus stepping the motor.
 The frequency of this signal changes the number of steps taken per second and therefore the angular velocity of the motor.
+This is governed by the equation below where $f$ is the PWM signal frequency in Hertz, $\omega$ is the target angular velocity in degrees per second, $\mu$ is the number of microsteps per steps, $\theta$ is the number of degrees rotated per step:
 
+$$
+f = \frac{2 \omega \mu}{\theta}
+$$ 
+
+To change the operating speed, you must issue a service call to the `/set_motor_speed` service using the `thetis_interfaces/SetFloat64` service.
+Negative values will cause the motor to spin counter-clockwise whereas positive values will rotate clockwise.
+This can be done from the command line via:
+
+```
+ros2 service call /set_motor_speed thetis_interfaces/SetFloat64 "{data: MOTOR_SPEED}"
+```
+Where `MOTOR_SPEED` is the target motor speed in degrees per second.
+
+To start the motor spinning, you must issue a `std_srvs/Trigger` call to the `/start_motor` service.
+This will enable the motor and set the internal enabled state.
+Similarly, you must issue a `std_srvs/Trigger` call to the `/stop_motor` service to stop the motor.
+These can be done via the command line with the following commands:
+
+```
+ros2 service call /start_motor std_srvs/Trigger
+```
+and
+```
+ros2 service call /stop_motor std_srvs/Trigger
+```
+
+To change the motor direction, you must issue a `thetis_interfaces/SetBool` call to the `/motor_dir` service.
+If the data field is true, then the motor will spin in the clockwise direction.
+If the data is false, the motor will spin counter-clockwise.
+You can call this service from the command line via:
+
+```
+ros2 service call /motor_dir thetis_interfaces/SetBool "{data: MOTOR_DIRECTION}
+```
+Where `MOTOR_DIRECTION` is true or false, depending on the desired direction
+
+To implement these in a Python script, consult the [ROS2 Guide](https://docs.ros.org/en/iron/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Service-And-Client.html)
