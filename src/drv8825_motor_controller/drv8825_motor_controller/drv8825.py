@@ -45,10 +45,11 @@ class DRV8825():
         GPIO.setup(self._enable_pin, GPIO.OUT)
         GPIO.setup(self._mode_pins, GPIO.OUT)
         
-        self._step_pwm = GPIO.PWM(self._step_pin, 0) # Create PWM channel at 0 Hz
+        self._step_pwm = GPIO.PWM(self._step_pin, 1) # Create PWM channel at 1 Hz
+        self.set_micro_step(StepModes.SOFTWARE, MicroSteps.FULL_STEP)
         
     def calculate_step_delay(self, velocity: float):
-        return (self._step_deg * self._micro_steps.value) / (2 * velocity)
+        return (self._step_deg * self._micro_steps.value) / velocity
     
     def calculate_step_frequency(self, velocity: float):
         return 1 / self.calculate_step_delay(velocity)
@@ -94,7 +95,7 @@ class DRV8825():
         self._micro_steps = step_format
         
         if (mode.value):
-            self.digital_write(self._mode_pins, microstep[ceil(log2(step_format.value))])
+            self.digital_write(self.mode_pins, microstep[ceil(log2(step_format.value))])
             
     def enable(self):
         self._is_enabled = True
@@ -105,7 +106,6 @@ class DRV8825():
         self.digital_write(self._enable_pin, False)
         
     def cleanup_gpio(self):
-        self.stop()
         GPIO.cleanup()
             
     def digital_write(self, pin, value):
@@ -130,7 +130,7 @@ class DRV8825Node(DRV8825, Node):
         self.mode_pins = self.get_parameter('mode_pins').get_parameter_value().integer_array_value
         self.mode_pins = list(self.mode_pins)
         self.step_mode = self.get_parameter('step_mode').get_parameter_value().bool_value
-		
+        		
         self.get_logger().info(f"Using direction pin: {self.dir_pin}")
         self.get_logger().info(f"Using step pin: {self.step_pin}")
         self.get_logger().info(f"Using enable pin: {self.enable_pin}")
@@ -154,7 +154,7 @@ class DRV8825Node(DRV8825, Node):
                 
     def enable_motor_callback(self, request, response):
         if not self._is_enabled:
-            self._is_enabled = True
+            self.enable()
             self._step_pwm.start(50)
             response.success = True
             response.message = "Motor started"
@@ -165,7 +165,7 @@ class DRV8825Node(DRV8825, Node):
 
     def disable_motor_callback(self, request, response):
         if self._is_enabled:
-            self._is_enabled = False
+            self.disable()
             self._step_pwm.stop()
             response.success = True
             response.message = "Motor stopped"
@@ -182,11 +182,14 @@ class DRV8825Node(DRV8825, Node):
                 
             
 def main(args=None):
-    rclpy.init(args=args)
-    stepper_node = DRV8825Node()
-    stepper_node.set_micro_step(StepModes.SOFTWARE, MicroSteps.FULL_STEP)
-    rclpy.spin(stepper_node)
-    rclpy.shutdown()
+    try:
+        rclpy.init(args=args)
+        stepper_node = DRV8825Node()
+        rclpy.spin(stepper_node)
+        rclpy.shutdown()
+    finally:
+        stepper_node.disable()
+        stepper_node.cleanup_gpio()
 
 
 if __name__ == '__main__':
