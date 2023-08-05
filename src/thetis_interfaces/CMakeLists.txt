@@ -25,6 +25,7 @@ if(BUILD_TESTING)
 endif()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/StringMsg.msg"
   "srv/SetBool.srv"
   "srv/SetFloat64.srv"
 )
