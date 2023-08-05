@@ -1,0 +1,2 @@
+class CalibrationMaster(Node):
+    pass
