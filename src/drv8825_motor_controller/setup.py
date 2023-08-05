@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'drv8825 = drv8825_motor_controller.drv8825:main'
+            'drv8825 = drv8825_motor_controller.DRV8825:main'
         ],
     },
 )

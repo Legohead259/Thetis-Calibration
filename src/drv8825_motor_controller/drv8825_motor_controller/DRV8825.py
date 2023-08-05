@@ -1,8 +1,29 @@
+"""
+ROS2 node for running the Waveshare DRV8825 HAT for the Raspberry Pi
+
+CONOPS: The DRV8825 controller directly interfaces with the Raspberry Pi hardware 
+attached on top (HAT) to drive a stepper motor. The controller can be commanded to 
+drive the motor at a specific angular velocity or step-by-step, depending on the
+end use case.
+
+CHANGELOG:
+ - Version 1.0.0: Initial release
+"""
+
+__author__      = "Braidan Duffy"
+__copyright__   = "Copyright 2023"
+__credits__     = "Braidan Duffy"
+__license__     = "MIT"
+__version__     = "1.0.0"
+__maintainer__  = "Braidan Duffy"
+__email__       = "bduffy2018@my.fit.edu"
+__status__      = "Prototype"
+
 import RPi.GPIO as GPIO
 import time
 import rclpy
 from rclpy.node import Node
-from std_srvs.srv import Trigger
+from std_srvs.srv import Trigger, Empty
 from thetis_interfaces.srv import SetFloat64, SetBool
 from enum import Enum
 from math import log2, ceil
@@ -211,6 +232,7 @@ class DRV8825Node(DRV8825, Node):
         self.stop_service = self.create_service(Trigger, 'stop_motor', self.disable_motor_callback)
         self.set_speed_service = self.create_service(SetFloat64, 'set_motor_speed', self.set_speed_callback)
         self.set_dir_service = self.create_service(SetBool, 'set_motor_dir', self.set_motor_direction_callback)
+        self.step_service = self.create_service(Empty, 'step', self.step_callback)
         self.get_logger().info("Initialized services")
                 
     def enable_motor_callback(self, request, response):
@@ -246,6 +268,9 @@ class DRV8825Node(DRV8825, Node):
         response.success = True
         response.message = "Motor direction set to clockwise" if self._motor_dir else "Motor direction set to counter-clockwise"
         return response
+    
+    def step_callback(self, request, response):
+        self.step()
                 
             
 def main(args=None):
