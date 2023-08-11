@@ -1,3 +1,15 @@
+"""
+ROS2 node for running the Waveshare DRV8825 HAT for the Raspberry Pi
+
+CONOPS: The DRV8825 controller directly interfaces with the Raspberry Pi hardware 
+attached on top (HAT) to drive a stepper motor. The controller can be commanded to 
+drive the motor at a specific angular velocity or step-by-step, depending on the
+end use case.
+
+CHANGELOG:
+ - Version 1.0.0: Initial release
+"""
+
 import rclpy
 from rclpy.node import Node
 from std_srvs.srv import Trigger, Empty
