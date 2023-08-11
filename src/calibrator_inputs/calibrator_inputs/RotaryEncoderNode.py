@@ -41,6 +41,8 @@ class RotaryEncoderNode(Node):
     _button_held : bool
     _encoder : rotaryio.IncrementalEncoder
     _last_position : int
+    _set_motor_dir_future = None
+    _step_future = None
     
     def __init__(self):
         super().__init__("RotaryEncoderNode")
@@ -86,6 +88,13 @@ class RotaryEncoderNode(Node):
         while not self.set_motor_dir_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info("'set_motor_dir' service not available, waiting again...")
         self.set_motor_dir_req = SetBool.Request()
+        self.get_logger().info("Established client for the 'set_motor_dir' service")
+        
+        self.step_client = self.create_client(Empty, "step")
+        while not self.step_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info("'step' service not available, waiting again...")
+        self.step_req = Empty.Request()
+        self.get_logger().info("Established client for the 'step' service")
         
         # Create periodic poll timer
         period = 0.05 # s
@@ -97,14 +106,13 @@ class RotaryEncoderNode(Node):
         position = -self._encoder.position
 
         if position != self._last_position:
-            print("Position: {}".format(position)) # DEBUG
-            # if position < self._last_position: # Counter-clockwise rotation
-            #     print(self.send_motor_dir_request(False))
-            # else:
-            #     print(self.send_motor_dir_request(True))
-
+            self.get_logger().debug("Position: {}".format(position)) # DEBUG
+            if position < self._last_position: # Counter-clockwise rotation
+                self.send_motor_dir_request(False)
+            else:
+                self.send_motor_dir_request(True)
+            self.send_step_request()
             self._last_position = position
-
 
         if not self._button.value and not self._button_held:
             self._button_held = True
@@ -126,10 +134,30 @@ class RotaryEncoderNode(Node):
     
     def send_motor_dir_request(self, dir: bool):
         self.set_motor_dir_req.data = dir
-        future = self.set_motor_dir_client.call_async(self.set_motor_dir_req)
-        rclpy.spin_until_future_complete(self, future)
-        return future.result()
-            
+        if self._set_motor_dir_future is not None and not self._set_motor_dir_future.done():
+            self._set_motor_dir_future.cancel()  # Cancel the future. The callback will be called with Future.result == None.
+            self.get_logger().warn("'set_motor_dir' Service Future canceled. "
+                                   "The Node took too long to process the service call."
+                                   "Is the Service Server still alive?")
+        self._set_motor_dir_future = self.set_motor_dir_client.call_async(self.set_motor_dir_req)
+        self._set_motor_dir_future.add_done_callback(self.request_done_callback)
+        
+    def send_step_request(self):
+        if self._step_future is not None and not self._step_future.done():
+            self._step_future.cancel()  # Cancel the future. The callback will be called with Future.result == None.
+            self.get_logger().warn("'step' Service Future canceled."
+                                   "The Node took too long to process the service call."
+                                   "Is the Service Server still alive?")
+        self._step_future = self.step_client.call_async(self.step_req)
+        # self.future.add_done_callback(self.request_done_callback)
+        
+    def request_done_callback(self, future):
+        response = future.result()
+        
+        if response is not None:
+            self.get_logger().info(f"[{response.success}]: {response.message}")
+        else:
+            self.get_logger().warn("Response did not come through")
     
 def main(args=None):
     rclpy.init(args=args)
