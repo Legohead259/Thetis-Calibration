@@ -186,3 +186,13 @@ class DRV8825():
             bool: the digital state of the pin; 0 (false) for LOW, 1 (true) for HiGH
         """
         return GPIO.read(pin)
+
+if __name__ == "__main__":
+    try:
+        driver = DRV8825(13, 19, 12, (16, 17, 20), StepModes.HARDWARE.value)
+        driver.enable()
+        driver.turn_steps(True, 60000)
+    finally:
+        driver.disable()
+        driver.cleanup_gpio()
+    

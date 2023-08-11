@@ -52,10 +52,10 @@ class DRV8825Node(DRV8825, Node):
                          micro_steps)
         
         # Create services
-        self.start_service = self.create_service(Trigger, 'start_motor', self.enable_motor_callback)
-        self.stop_service = self.create_service(Trigger, 'stop_motor', self.disable_motor_callback)
-        self.set_speed_service = self.create_service(SetFloat64, 'set_motor_speed', self.set_speed_callback)
-        self.set_dir_service = self.create_service(SetBool, 'set_motor_dir', self.set_motor_direction_callback)
+        self.start_motor_service = self.create_service(Trigger, 'start_motor', self.enable_motor_callback)
+        self.stop_motor_service = self.create_service(Trigger, 'stop_motor', self.disable_motor_callback)
+        self.set_motor_speed_service = self.create_service(SetFloat64, 'set_motor_speed', self.set_speed_callback)
+        self.set_motor_dir_service = self.create_service(SetBool, 'set_motor_dir', self.set_motor_direction_callback)
         self.step_service = self.create_service(Empty, 'step', self.step_callback)
         self.get_logger().info("Initialized services")
                 
@@ -82,7 +82,11 @@ class DRV8825Node(DRV8825, Node):
         return response
 
     def set_speed_callback(self, request, response):
-        self._step_pwm.ChangeFrequency(self.calculate_step_frequency(request.data))
+        if (request.data == 0):
+            self._step_pwm.stop()
+        else:
+            self._step_pwm.start(50)
+            self._step_pwm.ChangeFrequency(self.calculate_step_frequency(request.data))
         response.success = True
         response.message = f"Motor speed set to {request.data} deg/sec"
         return response
@@ -95,6 +99,7 @@ class DRV8825Node(DRV8825, Node):
     
     def step_callback(self, request, response):
         self.step()
+        return response
                 
             
 def main(args=None):

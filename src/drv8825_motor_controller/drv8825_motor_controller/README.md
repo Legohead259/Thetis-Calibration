@@ -73,13 +73,13 @@ and
 ros2 service call /stop_motor std_srvs/Trigger
 ```
 
-To change the motor direction, you must issue a `thetis_interfaces/SetBool` call to the `/motor_dir` service.
+To change the motor direction, you must issue a `thetis_interfaces/SetBool` call to the `/set_motor_dir` service.
 If the data field is true, then the motor will spin in the clockwise direction.
 If the data is false, the motor will spin counter-clockwise.
 You can call this service from the command line via:
 
 ```
-ros2 service call /motor_dir thetis_interfaces/SetBool "{data: MOTOR_DIRECTION}
+ros2 service call /set_motor_dir thetis_interfaces/SetBool "{data: MOTOR_DIRECTION}"
 ```
 Where `MOTOR_DIRECTION` is true or false, depending on the desired direction
 
