@@ -10,6 +10,15 @@ CHANGELOG:
  - Version 1.0.0: Initial release
 """
 
+__author__      = "Braidan Duffy"
+__copyright__   = "Copyright 2023"
+__credits__     = "Braidan Duffy"
+__license__     = "MIT"
+__version__     = "1.0.0"
+__maintainer__  = "Braidan Duffy"
+__email__       = "bduffy2018@my.fit.edu"
+__status__      = "Prototype"
+
 import rclpy
 from rclpy.node import Node
 from std_srvs.srv import Trigger, Empty
@@ -27,7 +36,7 @@ class DRV8825Node(DRV8825, Node):
         self.declare_parameter('enable_pin', 12)
         self.declare_parameter('mode_pins', (16, 17, 20))
         self.declare_parameter('step_mode', StepModes.HARDWARE.value)
-        self.declare_parameter('micro_steps', MicroSteps.THIRTY_SECOND_STEP.value)
+        self.declare_parameter('micro_steps', MicroSteps.FULL_STEP.value)
         
         dir_pin = self.get_parameter('dir_pin').get_parameter_value().integer_value
         step_pin = self.get_parameter('step_pin').get_parameter_value().integer_value

@@ -11,6 +11,7 @@ the plate.
 
 CHANGELOG:
  - Version 1.0.0: Initial release
+ - Version 1.0.1: Updated the motor service response call to be a `debug` level
 """
 
 import board
@@ -155,7 +156,7 @@ class RotaryEncoderNode(Node):
         response = future.result()
         
         if response is not None:
-            self.get_logger().info(f"[{response.success}]: {response.message}")
+            self.get_logger().debug(f"[{response.success}]: {response.message}")
         else:
             self.get_logger().warn("Response did not come through")
     
