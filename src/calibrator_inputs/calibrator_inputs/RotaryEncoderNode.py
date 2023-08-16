@@ -2,24 +2,20 @@
 ROS2 node for running the I2C rotary encoder QT from Adafruit
 https://www.adafruit.com/product/4991
 
-CONOPS: The rotary encoder gives the operator fine control over the
-rotation of the calibration plate. Every click of the encoder will
-correspond to 1.8 degrees of motion (a single step). Pressing the 
-encoder button will "home" the plate, such that the calibration cube
-is vertical. Pressing and holding the encoder button will re-home 
-the plate.
+CONOPS: In DISPLAY_CONTROL mode, the rotary encoder gives the operator
+control over the display. They can use it to move between buttons and
+select options.
+
+In MOTOR_CONTROL mode, the rotary encoder gives the operator fine control 
+over the rotation of the calibration plate. To get into this mode, hold 
+the encoder button for at least 3 seconds. Then, Every click of the encoder 
+will correspond to 1.8 degrees of motion (a single step). Pressing the 
+encoder button or letting the encoder rest for 5 seconds (no inputs) 
+will reset the state back to the DISPLAY_CONTROL mode.
 
 CHANGELOG:
  - Version 1.0.0: Initial release
- - Version 1.0.1: Updated the motor service response call to be a `debug` level
 """
-
-import board
-from adafruit_seesaw import seesaw, rotaryio, digitalio
-import rclpy
-from rclpy.node import Node
-from std_srvs.srv import Trigger, Empty
-from thetis_interfaces.srv import SetFloat64, SetBool
 
 __author__      = "Braidan Duffy"
 __copyright__   = "Copyright 2023"
@@ -30,7 +26,18 @@ __maintainer__  = "Braidan Duffy"
 __email__       = "bduffy2018@my.fit.edu"
 __status__      = "Prototype"
 
+import board
+from adafruit_seesaw import seesaw, rotaryio, digitalio
+import rclpy
+from rclpy.node import Node
+from std_srvs.srv import Trigger, Empty
+from thetis_interfaces.srv import SetFloat64, SetBool
+from enum import Enum
 
+class EncoderStates(Enum):
+    DISPLAY_CONTROL = 0 # Encoder is interacting with the display
+    MOTOR_CONTROL   = 1 # Encoder is driving the motor incrementally
+    
 class RotaryEncoderNode(Node):
     _PRODUCT_ID = 4991
     _BUTTON_PIN = 24
@@ -44,6 +51,8 @@ class RotaryEncoderNode(Node):
     _last_position : int
     _set_motor_dir_future = None
     _step_future = None
+    
+    _state : EncoderStates = EncoderStates.DISPLAY_CONTROL
     
     def __init__(self):
         super().__init__("RotaryEncoderNode")
@@ -85,6 +94,21 @@ class RotaryEncoderNode(Node):
         #     self.get_logger().info("'calibrate_home' service not available, waiting again...")
         # self.calibrate_home_req = Trigger.Request()
         
+        # self.calibrate_home_client = self.create_client(Trigger, "calibrate_home")
+        # while not self.home_client.wait_for_service(timeout_sec=1.0):
+        #     self.get_logger().info("'calibrate_home' service not available, waiting again...")
+        # self.calibrate_home_req = Trigger.Request()
+        
+        # self.calibrate_home_client = self.create_client(Trigger, "calibrate_home")
+        # while not self.home_client.wait_for_service(timeout_sec=1.0):
+        #     self.get_logger().info("'calibrate_home' service not available, waiting again...")
+        # self.calibrate_home_req = Trigger.Request()
+        
+        # self.calibrate_home_client = self.create_client(Trigger, "calibrate_home")
+        # while not self.home_client.wait_for_service(timeout_sec=1.0):
+        #     self.get_logger().info("'calibrate_home' service not available, waiting again...")
+        # self.calibrate_home_req = Trigger.Request()
+        
         self.set_motor_dir_client = self.create_client(SetBool, "set_motor_dir")
         while not self.set_motor_dir_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info("'set_motor_dir' service not available, waiting again...")
@@ -105,14 +129,21 @@ class RotaryEncoderNode(Node):
     def poll(self):
         # negate the position to make clockwise rotation positive
         position = -self._encoder.position
+        direction : bool = None
+        
+        if position != self._last_position:            
+            self.get_logger().debug(f"Position: {position}")
 
-        if position != self._last_position:
-            self.get_logger().debug("Position: {}".format(position)) # DEBUG
-            if position < self._last_position: # Counter-clockwise rotation
-                self.send_motor_dir_request(False)
-            else:
-                self.send_motor_dir_request(True)
-            self.send_step_request()
+            direction = position < self._last_position # False for CCW rotation, True for CW rotation
+            
+            self.get_logger().debug(f"Direction: {'CW' if direction else 'CCW'}")
+            
+            if self._state == EncoderStates.DISPLAY_CONTROL:
+                pass
+            elif self._state == EncoderStates.MOTOR_CONTROL:
+                self.send_motor_dir_request(direction)
+                self.send_step_request()
+            
             self._last_position = position
 
         if not self._button.value and not self._button_held:
