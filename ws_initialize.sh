@@ -34,6 +34,9 @@ sudo adduser "${USER}" dialout      # Fixes "No access to /dev/mem" error with P
 # Install PyQT
 pip3 install PyQT6
 
+# Install xIMU3 support
+pip3 install ximu3
+
 # Restart system
 sudo reboot
 
