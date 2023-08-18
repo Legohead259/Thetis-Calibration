@@ -25,9 +25,11 @@ if(BUILD_TESTING)
 endif()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/StringMsg.msg"
+  "msg/String.msg"
+  "msg/Inertial.msg"
   "srv/SetBool.srv"
   "srv/SetFloat64.srv"
+  "srv/XioCmd.srv"
 )
 
 ament_package()

@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'calibration_master'
+package_name = 'xio_device'
 
 setup(
     name=package_name,
@@ -13,14 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='root',
+    maintainer='thetis',
     maintainer_email='legohead259@gmail.com',
     description='TODO: Package description',
     license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "master = calibration_master.CalibrationMasterNode:main"
+            'XioDeviceNode = xio_device.XioDeviceNode:main'
         ],
     },
 )
