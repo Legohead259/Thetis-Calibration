@@ -1,0 +1,4 @@
+int test_num # The test number to exectute. Consult `calibration_master/common/misc.py:TestNumbers`
+---
+bool success # Indicate a successful run of triggered service
+string message # Information on triggered service, e.g. error message
