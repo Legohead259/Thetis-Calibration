@@ -40,12 +40,28 @@ class CalibrationMasterNode(Node):
         
         # Create subscribers
         
-        # Create servers
-        self.estop_server = self.create_service(Trigger, 'estop', self.estop_callback)
+        # Create services
+        self.estop_service = self.create_service(Trigger, 'estop', self.estop_callback)
         
         # Create clients
+        self.stop_motor_client = self.create_client(Trigger, "stop_motor")
+        while not self.stop_motor_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info("'stop_motor' service not available, waiting again...")
+        self.stop_motor_request = Trigger.Request()
+    
+    
+    # =================
+    # === CALLBACKS ===
+    # =================
+    
     
     def estop_callback(self, request, response):
+        """_summary_
+
+        Args:
+            request (_type_): _description_
+            response (_type_): _description_
+        """
         pass
     
 

@@ -30,10 +30,15 @@ from rclpy.task import Future
 from std_srvs.srv import Trigger
 from thetis_interfaces.srv import XioCmd
 from thetis_interfaces.msg import Inertial
+from calibrator_common.common.parameters import get_string_parameter, get_integer_parameter
+from calibrator_common.common.service_client import create_client
 import time
 
 
 class XioDeviceNode(Node):
+    """ROS2 node for connecting to devices that use the xioAPI for data and commands.
+    RE: the x-IMU3 and Thetis instrumentation board"""
+    
     _connection_info : ximu3.UdpConnectionInfo
     _connection : ximu3.Connection
     
@@ -43,15 +48,26 @@ class XioDeviceNode(Node):
     def __init__(self):
         super().__init__("XioDeviceNode")
         
+        # Parameter, topic, and service names
+        PARAMNAME_TARGET_UDP_ADDRESS = "target_udp_address"
+        PARAMNAME_UDP_SEND_PORT = "udp_send_port"
+        PARAMNAME_UDP_RECEIVE_PORT = "udp_receive_port"
+        
+        TOPICNAME_INERTIAL_MEASUREMENTS = "inertial_measurements"
+        
+        SERVICENAME_XIO_SEND_CMD = "xio_send_cmd"
+        SERVICENAME_STOP_MOTOR = "stop_motor"
+        SERVICENAME_ESTOP = "estop"
+        
         # Declare parameters
-        self.declare_parameter("target_udp_address", "192.168.1.1")
-        self.declare_parameter("udp_send_port", 9000)
-        self.declare_parameter("udp_receive_port", 8000)
+        self.declare_parameter(PARAMNAME_TARGET_UDP_ADDRESS, "192.168.1.1")
+        self.declare_parameter(PARAMNAME_UDP_SEND_PORT, 9000)
+        self.declare_parameter(PARAMNAME_UDP_RECEIVE_PORT, 8000)
         
         # Get parameter values from node launch
-        self._target_udp_address = self.get_parameter("target_udp_address").get_parameter_value().string_value
-        self._udp_send_port = self.get_parameter("udp_send_port").get_parameter_value().integer_value
-        self._udp_receive_port = self.get_parameter("udp_receive_port").get_parameter_value().integer_value
+        self._target_udp_address = get_string_parameter(self, PARAMNAME_TARGET_UDP_ADDRESS)
+        self._udp_send_port = get_integer_parameter(self, PARAMNAME_UDP_SEND_PORT)
+        self._udp_receive_port = get_integer_parameter(self, PARAMNAME_UDP_RECEIVE_PORT)
         
         # Report parameter values being used
         self.get_logger().info(f"Looking for device with IP address: {self._target_udp_address}")
@@ -59,21 +75,18 @@ class XioDeviceNode(Node):
         self.get_logger().info(f"Listening for data from device through port: {self._udp_receive_port}")
         
         # Create publishers
-        self.measurement_publisher = self.create_publisher(Inertial, 'measurement', 10)
+        self.inertial_measurements_publisher = self.create_publisher(Inertial, TOPICNAME_INERTIAL_MEASUREMENTS, 10)
+        
+        self.get_logger().info(f"Sending inertial measurement data to topic: /{TOPICNAME_INERTIAL_MEASUREMENTS}")
         
         # Create services
-        self.xio_send_cmd_service = self.create_service(XioCmd, 'xio_send_cmd', self.xio_send_cmd_callback)
+        self.xio_send_cmd_service = self.create_service(XioCmd, SERVICENAME_XIO_SEND_CMD, self.xio_send_cmd_callback)
+        
+        self.get_logger().info(f"Awaiting xioAPI command service requests to be sent to /{SERVICENAME_XIO_SEND_CMD}")
         
         # Create clients
-        self.stop_motor_client = self.create_client(Trigger, "stop_motor")
-        while not self.stop_motor_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info("'stop_motor' service not available, waiting again...")
-        self.stop_motor_request = Trigger.Request()
-        
-        self.estop_client = self.create_client(Trigger, "estop")
-        while not self.estop_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info("'estop' service not available, waiting again...")
-        self.estop_request = Trigger.Request()
+        self.stop_motor_client, self.stop_motor_request = create_client(self, Trigger, SERVICENAME_STOP_MOTOR)
+        self.estop_client, self.estop_request = create_client(self, Trigger, SERVICENAME_ESTOP)
         
         self.get_logger().info("Established clients")
         
@@ -90,7 +103,6 @@ class XioDeviceNode(Node):
         self._connection.add_decode_error_callback(self.xio_decode_error_callback)
         self._connection.add_statistics_callback(self.xio_statistics_callback)
         self._connection.add_inertial_callback(self.xio_inertial_callback)
-        
         
     def emergency_stop(self):
         self.send_stop_motor_request()
@@ -111,7 +123,6 @@ class XioDeviceNode(Node):
         self._stop_motor_future = self.stop_motor_client.call_async(self.stop_motor_request)
         self._stop_motor_future.add_done_callback(self.request_done_callback)
     
-    
     def send_estop_request(self):
         if self._estop_future is not None and not self._estop_future.done():
             self._estop_future.cancel()  # Cancel the future. The callback will be called with Future.result == None.
@@ -130,11 +141,9 @@ class XioDeviceNode(Node):
     def xio_send_cmd_callback(self, request, reponse):
         pass
     
-    
     def xio_decode_error_callback(self, decode_error):
         self.get_logger().error(ximu3.decode_error_to_string(decode_error))
         self.emergency_stop()
-    
     
     def xio_statistics_callback(self, statistics):
         self.get_logger().debug(XioDeviceNode.timestamp_format(statistics.timestamp) +
@@ -145,7 +154,6 @@ class XioDeviceNode(Node):
                                 XioDeviceNode.int_format(statistics.error_total) + " errors" +
                                 XioDeviceNode.int_format(statistics.error_rate) + " errors/s")
     
-        
     def xio_inertial_callback(self, message):
         # pass
         self.get_logger().debug(XioDeviceNode.timestamp_format(message.timestamp) +
@@ -165,7 +173,6 @@ class XioDeviceNode(Node):
                                                     gyro_y=message.gyroscope_y,
                                                     gyro_z=message.gyroscope_z))
         
-        
     def request_done_callback(self, future):
         response = future.result()
         
@@ -182,23 +189,20 @@ class XioDeviceNode(Node):
     @staticmethod
     def timestamp_format(timestamp):
         return "{:8.0f}".format(timestamp) + " us"
-
-
+    
     @staticmethod
     def int_format(value):
         return " " + "{:8.0f}".format(value)
-
 
     @staticmethod
     def float_format(value):
         return " " + "{:8.3f}".format(value)
 
-
     @staticmethod
     def string_format(string):
         return " \"" + string + "\""
         
-
+        
 def main(args=None):
     rclpy.init(args=args)
     node = XioDeviceNode()

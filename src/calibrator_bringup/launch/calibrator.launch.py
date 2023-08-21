@@ -29,7 +29,8 @@ def generate_launch_description():
     
     xio_device_node = Node(package="xio_device",
                            executable="XioDeviceNode",
-                           arguments=['--ros-args', '--log-level', 'debug'])
+                        #    arguments=['--ros-args', '--log-level', 'debug'],
+                           )
 
     ld.add_action(motor_controller_node)
     ld.add_action(master_node)
