@@ -23,8 +23,9 @@ import rclpy
 import ximu3
 from rclpy.node import Node
 from std_srvs.srv import Trigger
-from thetis_interfaces.srv import XioCmd
+from thetis_interfaces.srv import XioCmd, TestTrigger
 from thetis_interfaces.msg import Inertial
+from common.service_client import ServiceNames, create_client
 
 class CalibrationMasterNode(Node):
     def __init__(self):
@@ -41,27 +42,27 @@ class CalibrationMasterNode(Node):
         # Create subscribers
         
         # Create services
-        self.estop_service = self.create_service(Trigger, 'estop', self.estop_callback)
+        self.start_test_service = self.create_service(TestTrigger, ServiceNames.START_TEST.value, self.start_test_callback)
+        self.stop_test_service = self.create_service(Trigger, ServiceNames.STOP_TEST, self.stop_test_callback)
+        self.estop_service = self.create_service(Trigger, ServiceNames.ESTOP, self.estop_callback)
         
         # Create clients
-        self.stop_motor_client = self.create_client(Trigger, "stop_motor")
-        while not self.stop_motor_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info("'stop_motor' service not available, waiting again...")
-        self.stop_motor_request = Trigger.Request()
+        self.start_motor_client, self.start_motor_request = create_client(self, Trigger, ServiceNames.START_MOTOR)
+        self.stop_motor_client, self.stop_motor_request = create_client(self, Trigger, ServiceNames.STOP_MOTOR)
     
     
     # =================
     # === CALLBACKS ===
     # =================
     
-    
-    def estop_callback(self, request, response):
-        """_summary_
 
-        Args:
-            request (_type_): _description_
-            response (_type_): _description_
-        """
+    def start_test_callback(self, request, response):
+        pass
+    
+    def stop_test_callback(self, request, reponse):
+        pass
+            
+    def estop_callback(self, request, response):
         pass
     
 

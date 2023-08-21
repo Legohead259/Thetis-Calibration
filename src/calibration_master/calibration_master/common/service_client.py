@@ -22,13 +22,27 @@ from enum import Enum
 
 # Service Name Constants
 class ServiceNames(str, Enum):
-    XIO_SEND_CMD = "xio_send_cmd"
-    START_MOTOR = "start_motor"
-    STOP_MOTOR = "stop_motor"
-    SET_MOTOR_SPEED = "set_motor_speed"
-    SET_MOTOR_DIR = "set_motor_dir"
-    STEP = "step"
-    ESTOP = "estop"
+    # System
+    START_TEST  = "start_test"  # [thetis_interfaces/src/TestTrigger] Tells the system to start the test number passed in the service call. Returns success (bool) and response message
+    STOP_TEST   = "stop_test"   # [std_srvs/src/Trigger] Stops the currently running test and resets.
+    ESTOP       = "estop"       # [std_srvs/srv/Trigger] Emergency stops the entire system.
+    
+    # xioAPI
+    XIO_SEND_CMD = "xio_send_cmd"   # [thetis_interfaces/srv/XioCmd] Sends a JSON command to an xioAPI-compatible device. Returns the response JSON message
+    
+    # Motor
+    START_MOTOR     = "start_motor"     # [std_srvs/srv/Trigger] Starts the motor. Returns success (bool) and response message
+    STOP_MOTOR      = "stop_motor"      # [std_srvs/srv/Trigger] Stops the motor. Returns success (bool) and response message
+    SET_MOTOR_SPEED = "set_motor_speed" # [thetis_interfaces/srv/SetFloat64] Sets the motor speed in deg/sec. Returns success (bool) and response message
+    SET_MOTOR_DIR   = "set_motor_dir"   # [thetis_interfaces/srv/SetBool] Sets the motor direction. True for clockwise, False for counter-clockwise. Returns success (bool) and response message
+    STEP            = "step"            # [std_srvs/srv/Empty] Increments the motor a single step
+    
+    # rosbag recorder
+    IS_PAUSED       = "is_paused"       # [rosbag2_interfaces/srv/IsPaused] Returns whether recording is currently paused.
+    PAUSE           = "pause"           # [rosbag2_interfaces/srv/Pause] Pauses recording.
+    RESUME          = "resume"          # [rosbag2_interfaces/srv/Resume] Resume recording if paused.
+    SPLIT_BAGFILE   = "split_bagfile"   # [rosbag2_interfaces/srv/SplitBagfile] Triggers a split to a new file, even if none of the configured split criteria have been met yet
+    SNAPSHOT        = "snapshot"        # [rosbag2_interfaces/srv/Snapshot] Enabled if --snapshot-mode is specified. Takes no arguments, triggers a snapshot.
 
 
 def create_client(node: Node, srv_type: Any, name: str, blocking: bool=True, timeout: float=1.0) -> tuple [Client, Any]:

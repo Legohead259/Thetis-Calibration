@@ -31,6 +31,7 @@ from std_srvs.srv import Trigger
 from thetis_interfaces.srv import XioCmd
 from thetis_interfaces.msg import Inertial
 from calibration_master.common.parameters import ParameterNames, get_string_parameter, get_integer_parameter
+from calibration_master.common.pub_sub import TopicNames
 from calibration_master.common.service_client import ServiceNames, create_client
 import time
 
@@ -47,9 +48,7 @@ class XioDeviceNode(Node):
     
     def __init__(self):
         super().__init__("XioDeviceNode")
-        
-        TOPICNAME_INERTIAL_MEASUREMENTS = "inertial_measurements"
-        
+                
         # Declare parameters
         self.declare_parameter(ParameterNames.TARGET_UDP_ADDRESS.value, "192.168.1.1")
         self.declare_parameter(ParameterNames.UDP_SEND_PORT.value, 9000)
@@ -65,9 +64,9 @@ class XioDeviceNode(Node):
         self.get_logger().info(f"Listening for data from device through port: {self._udp_receive_port}")
         
         # Create publishers
-        self.inertial_measurements_publisher = self.create_publisher(Inertial, TOPICNAME_INERTIAL_MEASUREMENTS, 10)
+        self.inertial_measurements_publisher = self.create_publisher(Inertial, TopicNames.INERTIAL_MESSAGES.value, 10)
         
-        self.get_logger().info(f"Sending inertial measurement data to topic: /{TOPICNAME_INERTIAL_MEASUREMENTS}")
+        self.get_logger().info(f"Sending inertial measurement data to topic: /{TopicNames.INERTIAL_MESSAGES}")
         
         # Create services
         self.xio_send_cmd_service = self.create_service(XioCmd, ServiceNames.XIO_SEND_CMD.value, self.xio_send_cmd_callback)
@@ -145,7 +144,6 @@ class XioDeviceNode(Node):
                                 XioDeviceNode.int_format(statistics.error_rate) + " errors/s")
     
     def xio_inertial_callback(self, message):
-        # pass
         self.get_logger().debug(XioDeviceNode.timestamp_format(message.timestamp) +
                                 XioDeviceNode.float_format(message.gyroscope_x) + " deg/s" +
                                 XioDeviceNode.float_format(message.gyroscope_y) + " deg/s" +
