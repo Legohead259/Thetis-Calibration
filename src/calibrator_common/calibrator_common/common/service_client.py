@@ -14,10 +14,24 @@ __maintainer__  = "Braidan Duffy"
 __email__       = "bduffy2018@my.fit.edu"
 __status__      = "Prototype"
 
+from typing import Any
+
 from rclpy.node import Node
 from rclpy.client import Client
+from enum import Enum
 
-def create_client(node: Node, srv_type, name: str, blocking: bool=True, timeout: float=1.0) -> tuple [Client, Request]:
+# Service Name Constants
+class ServiceNames(str, Enum):
+    XIO_SEND_CMD = "xio_send_cmd"
+    START_MOTOR = "start_motor"
+    STOP_MOTOR = "stop_motor"
+    SET_MOTOR_SPEED = "set_motor_speed"
+    SET_MOTOR_DIR = "set_motor_dir"
+    STEP = "step"
+    ESTOP = "estop"
+
+
+def create_client(node: Node, srv_type: Any, name: str, blocking: bool=True, timeout: float=1.0) -> tuple [Client, Any]:
     """Wrapper for rclpy to create a client
 
     Args:

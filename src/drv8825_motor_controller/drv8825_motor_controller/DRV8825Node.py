@@ -24,27 +24,28 @@ from rclpy.node import Node
 from std_srvs.srv import Trigger, Empty
 from thetis_interfaces.srv import SetFloat64, SetBool
 from DRV8825 import DRV8825, StepModes, MicroSteps
+from calibrator_common.common.parameters import ParameterNames, get_integer_parameter, get_integer_array_parameter, get_boolean_parameter
+from calibrator_common.common.service_client import ServiceNames
 
 class DRV8825Node(DRV8825, Node):
     target_velocity : float = 360
     
     def __init__(self):
         Node.__init__(self, 'DRV8825Node')
-
-        self.declare_parameter('dir_pin', 13)
-        self.declare_parameter('step_pin', 19)
-        self.declare_parameter('enable_pin', 12)
-        self.declare_parameter('mode_pins', (16, 17, 20))
-        self.declare_parameter('step_mode', StepModes.HARDWARE.value)
-        self.declare_parameter('micro_steps', MicroSteps.FULL_STEP.value)
         
-        dir_pin = self.get_parameter('dir_pin').get_parameter_value().integer_value
-        step_pin = self.get_parameter('step_pin').get_parameter_value().integer_value
-        enable_pin = self.get_parameter('enable_pin').get_parameter_value().integer_value
-        mode_pins = self.get_parameter('mode_pins').get_parameter_value().integer_array_value
-        mode_pins = list(mode_pins)
-        micro_steps = self.get_parameter('micro_steps').get_parameter_value().integer_value
-        self._step_mode = self.get_parameter('step_mode').get_parameter_value().bool_value
+        self.declare_parameter(ParameterNames.DIR_PIN.value, 13)
+        self.declare_parameter(ParameterNames.STEP_PIN.value, 19)
+        self.declare_parameter(ParameterNames.ENABLE_PIN.value, 12)
+        self.declare_parameter(ParameterNames.MODE_PINS.value, (16, 17, 20))
+        self.declare_parameter(ParameterNames.STEP_MODE.value, StepModes.HARDWARE.value)
+        self.declare_parameter(ParameterNames.MICRO_STEPS.value, MicroSteps.FULL_STEP.value)
+        
+        dir_pin = get_integer_parameter(self, ParameterNames.DIR_PIN.value)
+        step_pin = get_integer_parameter(self, ParameterNames.STEP_PIN.value)
+        enable_pin = get_integer_parameter(self, ParameterNames.ENABLE_PIN.value)
+        mode_pins = get_integer_array_parameter(self, ParameterNames.MODE_PINS.value)
+        self._step_mode = get_boolean_parameter(self, ParameterNames.STEP_MODE.value)
+        micro_steps = get_integer_parameter(self, ParameterNames.MICRO_STEPS.value)
         		
         self.get_logger().info(f"Using direction pin: {dir_pin}")
         self.get_logger().info(f"Using step pin: {step_pin}")
@@ -61,11 +62,12 @@ class DRV8825Node(DRV8825, Node):
                          micro_steps)
         
         # Create services
-        self.start_motor_service = self.create_service(Trigger, 'start_motor', self.enable_motor_callback)
-        self.stop_motor_service = self.create_service(Trigger, 'stop_motor', self.disable_motor_callback)
-        self.set_motor_speed_service = self.create_service(SetFloat64, 'set_motor_speed', self.set_speed_callback)
-        self.set_motor_dir_service = self.create_service(SetBool, 'set_motor_dir', self.set_motor_direction_callback)
-        self.step_service = self.create_service(Empty, 'step', self.step_callback)
+        self.start_motor_service = self.create_service(Trigger, ServiceNames.START_MOTOR.value, self.enable_motor_callback)
+        self.stop_motor_service = self.create_service(Trigger, ServiceNames.STOP_MOTOR.value, self.disable_motor_callback)
+        self.set_motor_speed_service = self.create_service(SetFloat64, ServiceNames.SET_MOTOR_SPEED.value, self.set_speed_callback)
+        self.set_motor_dir_service = self.create_service(SetBool, ServiceNames.SET_MOTOR_DIR.value, self.set_motor_direction_callback)
+        self.step_service = self.create_service(Empty, ServiceNames.STEP.value, self.step_callback)
+        
         self.get_logger().info("Initialized services")
                 
     def enable_motor_callback(self, request, response):

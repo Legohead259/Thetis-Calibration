@@ -30,8 +30,8 @@ from rclpy.task import Future
 from std_srvs.srv import Trigger
 from thetis_interfaces.srv import XioCmd
 from thetis_interfaces.msg import Inertial
-from calibrator_common.common.parameters import get_string_parameter, get_integer_parameter
-from calibrator_common.common.service_client import create_client
+from calibrator_common.common.parameters import ParameterNames, get_string_parameter, get_integer_parameter
+from calibrator_common.common.service_client import ServiceNames, create_client
 import time
 
 
@@ -48,28 +48,18 @@ class XioDeviceNode(Node):
     def __init__(self):
         super().__init__("XioDeviceNode")
         
-        # Parameter, topic, and service names
-        PARAMNAME_TARGET_UDP_ADDRESS = "target_udp_address"
-        PARAMNAME_UDP_SEND_PORT = "udp_send_port"
-        PARAMNAME_UDP_RECEIVE_PORT = "udp_receive_port"
-        
         TOPICNAME_INERTIAL_MEASUREMENTS = "inertial_measurements"
         
-        SERVICENAME_XIO_SEND_CMD = "xio_send_cmd"
-        SERVICENAME_STOP_MOTOR = "stop_motor"
-        SERVICENAME_ESTOP = "estop"
-        
         # Declare parameters
-        self.declare_parameter(PARAMNAME_TARGET_UDP_ADDRESS, "192.168.1.1")
-        self.declare_parameter(PARAMNAME_UDP_SEND_PORT, 9000)
-        self.declare_parameter(PARAMNAME_UDP_RECEIVE_PORT, 8000)
+        self.declare_parameter(ParameterNames.TARGET_UDP_ADDRESS.value, "192.168.1.1")
+        self.declare_parameter(ParameterNames.UDP_SEND_PORT.value, 9000)
+        self.declare_parameter(ParameterNames.UDP_RECEIVE_PORT.value, 8000)
         
         # Get parameter values from node launch
-        self._target_udp_address = get_string_parameter(self, PARAMNAME_TARGET_UDP_ADDRESS)
-        self._udp_send_port = get_integer_parameter(self, PARAMNAME_UDP_SEND_PORT)
-        self._udp_receive_port = get_integer_parameter(self, PARAMNAME_UDP_RECEIVE_PORT)
+        self._target_udp_address = get_string_parameter(self, ParameterNames.TARGET_UDP_ADDRESS)
+        self._udp_send_port = get_integer_parameter(self, ParameterNames.UDP_SEND_PORT)
+        self._udp_receive_port = get_integer_parameter(self, ParameterNames.UDP_RECEIVE_PORT)
         
-        # Report parameter values being used
         self.get_logger().info(f"Looking for device with IP address: {self._target_udp_address}")
         self.get_logger().info(f"Sending data to device through port: {self._udp_send_port}")
         self.get_logger().info(f"Listening for data from device through port: {self._udp_receive_port}")
@@ -80,13 +70,13 @@ class XioDeviceNode(Node):
         self.get_logger().info(f"Sending inertial measurement data to topic: /{TOPICNAME_INERTIAL_MEASUREMENTS}")
         
         # Create services
-        self.xio_send_cmd_service = self.create_service(XioCmd, SERVICENAME_XIO_SEND_CMD, self.xio_send_cmd_callback)
+        self.xio_send_cmd_service = self.create_service(XioCmd, ServiceNames.XIO_SEND_CMD.value, self.xio_send_cmd_callback)
         
-        self.get_logger().info(f"Awaiting xioAPI command service requests to be sent to /{SERVICENAME_XIO_SEND_CMD}")
+        self.get_logger().info(f"Awaiting xioAPI command service requests to be sent to /{ServiceNames.XIO_SEND_CMD}")
         
         # Create clients
-        self.stop_motor_client, self.stop_motor_request = create_client(self, Trigger, SERVICENAME_STOP_MOTOR)
-        self.estop_client, self.estop_request = create_client(self, Trigger, SERVICENAME_ESTOP)
+        self.stop_motor_client, self.stop_motor_request = create_client(self, Trigger, ServiceNames.STOP_MOTOR.value)
+        self.estop_client, self.estop_request = create_client(self, Trigger, ServiceNames.ESTOP.value)
         
         self.get_logger().info("Established clients")
         

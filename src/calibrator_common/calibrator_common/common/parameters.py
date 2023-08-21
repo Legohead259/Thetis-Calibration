@@ -15,6 +15,23 @@ __email__       = "bduffy2018@my.fit.edu"
 __status__      = "Prototype"
 
 from rclpy.node import Node
+from enum import Enum
+
+
+class ParameterNames(str, Enum):
+    # DRV8825Node
+    DIR_PIN     = "dir_pin"
+    STEP_PIN    = "step_pin"
+    ENABLE_PIN  = "enable_pin"
+    MODE_PINS   = "mode_pins"
+    STEP_MODE   = "step_mode"
+    MICRO_STEPS = "micro_steps"
+    
+    # XioDeviceNode
+    TARGET_UDP_ADDRESS  = "target_udp_address"
+    UDP_SEND_PORT       = "udp_send_port"
+    UDP_RECEIVE_PORT    = "udp_receive_port"
+
 
 def get_string_parameter(node: Node, name: str) -> str:
     """Wrapper for RCLPY nodes to return a parameter that is expected to have a string value
@@ -28,6 +45,7 @@ def get_string_parameter(node: Node, name: str) -> str:
     """
     return node.get_parameter(name).get_parameter_value().string_value
 
+
 def get_integer_parameter(node: Node, name: str) -> int:
     """Wrapper for rclpy nodes to return a parameter that is expected to have an integer value
 
@@ -40,6 +58,20 @@ def get_integer_parameter(node: Node, name: str) -> int:
     """
     return node.get_parameter(name).get_parameter_value().integer_value
 
+
+def get_integer_array_parameter(node: Node, name: str) -> list[int]:
+    """Wrapper for rclpy nodes to return a parameter that is expected to have an array of integer values
+
+    Args:
+        node (Node): the ROS2 node to pull the parameter from
+        name (str): The name of the parameter. MUST BE THE SAME AS WHAT WAS DECLARED
+
+    Returns:
+        list: The values of the supplied parameter as gotten from the specific node
+    """
+    return list(node.get_parameter(name).get_parameter_value().integer_array_value)
+
+
 def get_float_parameter(node: Node, name: str) -> float:
     """Wrapper for rclpy nodes to return a parameter that is expected to have an float value
 
@@ -51,3 +83,29 @@ def get_float_parameter(node: Node, name: str) -> float:
         float: The value of the supplied parameter as gotten from the specific node
     """
     return node.get_parameter(name).get_parameter_value().float_value
+
+
+def get_float_array_parameter(node: Node, name: str) -> list[float]:
+    """Wrapper for rclpy nodes to return a parameter that is expected to have an array of float values
+
+    Args:
+        node (Node): the ROS2 node to pull the parameter from
+        name (str): The name of the parameter. MUST BE THE SAME AS WHAT WAS DECLARED
+
+    Returns:
+        list: The values of the supplied parameter as gotten from the specific node
+    """
+    return list(node.get_parameter(name).get_parameter_value().float_array_value)
+
+
+def get_boolean_parameter(node: Node, name: str) -> bool:
+    """Wrapper for rclpy nodes to return a parameter that is expected to have a boolean value
+
+    Args:
+        node (Node): the ROS2 node to pull the parameter from
+        name (str): The name of the parameter. MUST BE THE SAME AS WHAT WAS DECLARED
+
+    Returns:
+        bool: The values of the supplied parameter as gotten from the specific node
+    """
+    return node.get_parameter(name).get_parameter_value().bool_value
