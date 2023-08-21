@@ -30,8 +30,8 @@ from rclpy.task import Future
 from std_srvs.srv import Trigger
 from thetis_interfaces.srv import XioCmd
 from thetis_interfaces.msg import Inertial
-from calibrator_common.common.parameters import ParameterNames, get_string_parameter, get_integer_parameter
-from calibrator_common.common.service_client import ServiceNames, create_client
+from calibration_master.common.parameters import ParameterNames, get_string_parameter, get_integer_parameter
+from calibration_master.common.service_client import ServiceNames, create_client
 import time
 
 

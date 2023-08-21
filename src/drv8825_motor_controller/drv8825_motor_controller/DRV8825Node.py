@@ -24,8 +24,8 @@ from rclpy.node import Node
 from std_srvs.srv import Trigger, Empty
 from thetis_interfaces.srv import SetFloat64, SetBool
 from DRV8825 import DRV8825, StepModes, MicroSteps
-from calibrator_common.common.parameters import ParameterNames, get_integer_parameter, get_integer_array_parameter, get_boolean_parameter
-from calibrator_common.common.service_client import ServiceNames
+from calibration_master.common.parameters import ParameterNames, get_integer_parameter, get_integer_array_parameter, get_boolean_parameter
+from calibration_master.common.service_client import ServiceNames
 
 class DRV8825Node(DRV8825, Node):
     target_velocity : float = 360
