@@ -66,7 +66,7 @@ class XioDeviceNode(Node):
         # Create publishers
         self.inertial_measurements_publisher = self.create_publisher(Inertial, TopicNames.INERTIAL_MESSAGES.value, 10)
         
-        self.get_logger().info(f"Sending inertial measurement data to topic: /{TopicNames.INERTIAL_MESSAGES}")
+        self.get_logger().info(f"Sending inertial measurement data to topic: {self.inertial_measurements_publisher.topic_name}")
         
         # Create services
         self.xio_send_cmd_service = self.create_service(XioCmd, ServiceNames.XIO_SEND_CMD.value, self.xio_send_cmd_callback)
@@ -153,13 +153,14 @@ class XioDeviceNode(Node):
                                 XioDeviceNode.float_format(message.accelerometer_z) + " g",
                                 throttle_duration_sec=1)
         
-        self.measurement_publisher.publish(Inertial(timestamp=message.timestamp,
-                                                    accel_x=message.accelerometer_x,
-                                                    accel_y=message.accelerometer_y,
-                                                    accel_z=message.accelerometer_z,
-                                                    gyro_x=message.gyroscope_x,
-                                                    gyro_y=message.gyroscope_y,
-                                                    gyro_z=message.gyroscope_z))
+        self.inertial_measurements_publisher.publish(
+            Inertial(timestamp=message.timestamp,
+                     accel_x=message.accelerometer_x,
+                     accel_y=message.accelerometer_y,
+                     accel_z=message.accelerometer_z,
+                     gyro_x=message.gyroscope_x,
+                     gyro_y=message.gyroscope_y,
+                     gyro_z=message.gyroscope_z))
         
     def request_done_callback(self, future):
         response = future.result()

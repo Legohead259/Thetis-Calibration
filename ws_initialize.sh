@@ -31,8 +31,12 @@ pip3 install rpi.gpio
 sudo apt install rpi.gpio-common    # Fixes "No access to /dev/mem" error with Python RPi.GPIO
 sudo adduser "${USER}" dialout      # Fixes "No access to /dev/mem" error with Python RPi.GPIO
 
+# Install CircuitPython support
+pip3 install adafruit-blink
+pip3 install adafruit-circuitpython-mlx90393
+
 # Install PyQT
-pip3 install PyQT6
+pip3 install PyQT5
 
 # Install xIMU3 support
 pip3 install ximu3
