@@ -117,7 +117,7 @@ class MLX90393Node(Node):
         if direction and peak_detected:
             if time.monotonic() - self._last_peak_call_time > self._peak_call_timeout:
                 self.magnet_detect_publisher.publish(MagnetDetect(
-                    timestamp=time.monotonic_ns()
+                    timestamp=time.monotonic_ns(),
                     dir=direction.value
                 ))
         
