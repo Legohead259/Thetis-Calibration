@@ -1,0 +1,28 @@
+rosbag2_bagfile_information:
+  version: 7
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 0
+  starting_time:
+    nanoseconds_since_epoch: 9223372036854775807
+  message_count: 0
+  topics_with_message_count:
+    - topic_metadata:
+        name: /inertial
+        type: thetis_interfaces/msg/Inertial
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+        type_description_hash: RIHS01_0e4666f8a689f09fc5ae8ab8061dc8b23f85a0360a4f974db677d7b04228be48
+      message_count: 0
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - fde03e05-06fc-4fa3-9748-6ae741cd5fca_0.mcap
+  files:
+    - path: fde03e05-06fc-4fa3-9748-6ae741cd5fca_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 9223372036854775807
+      duration:
+        nanoseconds: 0
+      message_count: 0
+  custom_data: ~

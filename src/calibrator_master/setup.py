@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'calibration_master'
+package_name = 'calibrator_master'
 
 setup(
     name=package_name,
@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "master = calibration_master.CalibrationMasterNode:main"
+            "master = calibrator_master.CalibratorMasterNode:main"
         ],
     },
 )

@@ -37,7 +37,7 @@ def generate_launch_description():
     )
 
     master_node = Node(
-        package="calibration_master",
+        package="calibrator_master",
         executable="master"
     )
     
