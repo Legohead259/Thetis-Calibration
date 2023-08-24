@@ -3,6 +3,9 @@
 # Update the internal packages and upgrade to latest versions
 sudo apt update && apt upgrade -y
 
+# Install SSH capability
+sudo apt install openssh-server -y
+
 # Install and configure git
 sudo apt install git -y
 git config --global user.name Legohead259
@@ -14,8 +17,8 @@ sudo add-apt-repository universe -y
 sudo apt update && sudo apt install curl -y
 sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-sudo apt update && sudo apt install ros-dev-tools
-sudo apt install ros-iron-desktop
+sudo apt update && sudo apt install ros-dev-tools -y
+sudo apt install ros-iron-desktop -y
 
 # Setup ROS2 to be CLI accessible
 source /opt/ros/iron/setup.bash
@@ -28,11 +31,11 @@ sudo apt install python3-pip -y
 
 # Install RPi.GPIO (https://askubuntu.com/questions/1230947/gpio-for-raspberry-pi-gpio-group)
 pip3 install rpi.gpio
-sudo apt install rpi.gpio-common    # Fixes "No access to /dev/mem" error with Python RPi.GPIO
+sudo apt install rpi.gpio-common -y # Fixes "No access to /dev/mem" error with Python RPi.GPIO
 sudo adduser "${USER}" dialout      # Fixes "No access to /dev/mem" error with Python RPi.GPIO
 
 # Install CircuitPython support
-pip3 install adafruit-blink
+pip3 install adafruit-blinka
 pip3 install adafruit-circuitpython-mlx90393
 
 # Install PyQT
