@@ -28,11 +28,11 @@ import ximu3
 from rclpy.node import Node
 from rclpy.task import Future
 from std_srvs.srv import Trigger
-from thetis_interfaces.srv import XioCmd
-from thetis_interfaces.msg import Inertial
-from calibration_master.common.parameters import ParameterNames, get_string_parameter, get_integer_parameter
-from calibration_master.common.pub_sub import TopicNames
-from calibration_master.common.service_client import ServiceNames, create_client
+from calibrator_interfaces.srv import XioCmd
+from calibrator_interfaces.msg import Inertial
+from calibrator_common.common.parameters import ParameterNames, get_string_parameter, get_integer_parameter
+from calibrator_common.common.pub_sub import TopicNames
+from calibrator_common.common.service_client import ServiceNames, create_client
 import time
 
 

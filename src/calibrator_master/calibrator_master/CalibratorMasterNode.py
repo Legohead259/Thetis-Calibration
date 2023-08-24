@@ -24,8 +24,8 @@ from rclpy.node import Node
 from rclpy.serialization import serialize_message
 import rosbag2_py as rosbag
 from std_srvs.srv import Trigger
-from thetis_interfaces.srv import XioCmd, TestTrigger
-from thetis_interfaces.msg import Inertial
+from calibrator_interfaces.srv import XioCmd, TestTrigger
+from calibrator_interfaces.msg import Inertial
 from calibrator_common.common.service_client import ServiceNames, create_client
 from calibrator_common.common.pub_sub import TopicNames
 

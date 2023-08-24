@@ -3,7 +3,7 @@ This node is designed to interface with the Waveshare DRV8825 HAT for the Raspbe
 
 ## Operation
 ### Pre-launch
-If this is the first installation and run, navigate to the root directory of your ROS2 workspace (e.g. `home/thetis_calibration_ws/`) and execute:
+If this is the first installation and run, navigate to the root directory of your ROS2 workspace (e.g. `home/thetis/Documents/calibrator_ws/`) and execute:
 
 ```
 colcon build --packages-select drv8825_motor_controller --symlink-install
@@ -51,12 +51,12 @@ $$
 f = \frac{2 \omega \mu}{\theta}
 $$ 
 
-To change the operating speed, you must issue a service call to the `/set_motor_speed` service using the `thetis_interfaces/SetFloat64` service.
+To change the operating speed, you must issue a service call to the `/set_motor_speed` service using the `calibrator_interfaces/SetFloat64` service.
 Negative values will cause the motor to spin counter-clockwise whereas positive values will rotate clockwise.
 This can be done from the command line via:
 
 ```
-ros2 service call /set_motor_speed thetis_interfaces/SetFloat64 "{data: MOTOR_SPEED}"
+ros2 service call /set_motor_speed calibrator_interfaces/SetFloat64 "{data: MOTOR_SPEED}"
 ```
 Where `MOTOR_SPEED` is the target motor speed in degrees per second.
 
@@ -73,13 +73,13 @@ and
 ros2 service call /stop_motor std_srvs/Trigger
 ```
 
-To change the motor direction, you must issue a `thetis_interfaces/SetBool` call to the `/set_motor_dir` service.
+To change the motor direction, you must issue a `calibrator_interfaces/SetBool` call to the `/set_motor_dir` service.
 If the data field is true, then the motor will spin in the clockwise direction.
 If the data is false, the motor will spin counter-clockwise.
 You can call this service from the command line via:
 
 ```
-ros2 service call /set_motor_dir thetis_interfaces/SetBool "{data: MOTOR_DIRECTION}"
+ros2 service call /set_motor_dir calibrator_interfaces/SetBool "{data: MOTOR_DIRECTION}"
 ```
 Where `MOTOR_DIRECTION` is true or false, depending on the desired direction
 

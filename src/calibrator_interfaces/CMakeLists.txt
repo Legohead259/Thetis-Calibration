@@ -27,6 +27,8 @@ endif()
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/String.msg"
   "msg/Inertial.msg"
+  "msg/Magnetic.msg"
+  "msg/MagnetDetect.msg"
   "srv/SetBool.srv"
   "srv/SetFloat64.srv"
   "srv/XioCmd.srv"

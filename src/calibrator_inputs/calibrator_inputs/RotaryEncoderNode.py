@@ -31,7 +31,7 @@ from adafruit_seesaw import seesaw, rotaryio, digitalio
 import rclpy
 from rclpy.node import Node
 from std_srvs.srv import Trigger, Empty
-from thetis_interfaces.srv import SetFloat64, SetBool
+from calibrator_interfaces.srv import SetFloat64, SetBool
 from enum import Enum
 
 class EncoderStates(Enum):

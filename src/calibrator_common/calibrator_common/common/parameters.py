@@ -19,7 +19,7 @@ from enum import Enum
 
 
 class ParameterNames(str, Enum):
-    # DRV8825Node
+    # DRV8825 Node
     DIR_PIN     = "dir_pin"
     STEP_PIN    = "step_pin"
     ENABLE_PIN  = "enable_pin"
@@ -27,7 +27,11 @@ class ParameterNames(str, Enum):
     STEP_MODE   = "step_mode"
     MICRO_STEPS = "micro_steps"
     
-    # XioDeviceNode
+    # MLX90393 Node
+    MLX90393_I2C_ADDRESS = "i2c_address"
+    MLX90393_GAIN = "gain"
+    
+    # XioDevice Node
     TARGET_UDP_ADDRESS  = "target_udp_address"
     UDP_SEND_PORT       = "udp_send_port"
     UDP_RECEIVE_PORT    = "udp_receive_port"

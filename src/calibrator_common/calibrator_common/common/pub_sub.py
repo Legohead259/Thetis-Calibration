@@ -17,4 +17,11 @@ __status__      = "Prototype"
 from enum import Enum
 
 class TopicNames(str, Enum):
-    INERTIAL_MESSAGES = "inertial"
+    INERTIAL = "inertial"
+    PLATE_MAGNETOMETER = "plate/magnetometer"
+    MAGNET_DETECT = "magnet_detect"
+    
+
+class PlateDirection(Enum):
+    COUNTER_CLOCKWISE = 0
+    CLOCKWISE = 1

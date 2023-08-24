@@ -52,3 +52,4 @@ sudo reboot
 # 2. Pylance
 # 3. AutoDocstring
 # 4. CMake Tools
+# 5. Code SpellCheck

@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'rotary_encoder = calibrator_inputs.RotaryEncoderNode:main'
+            'rotary_encoder = calibrator_inputs.RotaryEncoderNode:main',
+            'magnetometer = calibrator_inputs.MLX90393Node:main'
         ],
     },
 )

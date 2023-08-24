@@ -23,19 +23,21 @@ from enum import Enum
 # Service Name Constants
 class ServiceNames(str, Enum):
     # System
-    START_TEST  = "start_test"  # [thetis_interfaces/src/TestTrigger] Tells the system to start the test number passed in the service call. Returns success (bool) and response message
+    START_TEST  = "start_test"  # [calibrator_interfaces/srv/TestTrigger] Tells the system to start the test number passed in the service call. Returns success (bool) and response message
     STOP_TEST   = "stop_test"   # [std_srvs/src/Trigger] Stops the currently running test and resets.
     ESTOP       = "estop"       # [std_srvs/srv/Trigger] Emergency stops the entire system.
     
     # xioAPI
     XIO_SEND_CMD = "xio_send_cmd"   # [thetis_interfaces/srv/XioCmd] Sends a JSON command to an xioAPI-compatible device. Returns the response JSON message
     
-    # Motor
-    START_MOTOR     = "start_motor"     # [std_srvs/srv/Trigger] Starts the motor. Returns success (bool) and response message
-    STOP_MOTOR      = "stop_motor"      # [std_srvs/srv/Trigger] Stops the motor. Returns success (bool) and response message
-    SET_MOTOR_SPEED = "set_motor_speed" # [thetis_interfaces/srv/SetFloat64] Sets the motor speed in deg/sec. Returns success (bool) and response message
-    SET_MOTOR_DIR   = "set_motor_dir"   # [thetis_interfaces/srv/SetBool] Sets the motor direction. True for clockwise, False for counter-clockwise. Returns success (bool) and response message
-    STEP            = "step"            # [std_srvs/srv/Empty] Increments the motor a single step
+    # Plate
+    START_MOTOR         = "start_motor"         # [std_srvs/srv/Trigger] Starts the motor. Returns success (bool) and response message
+    STOP_MOTOR          = "stop_motor"          # [std_srvs/srv/Trigger] Stops the motor. Returns success (bool) and response message
+    SET_MOTOR_SPEED     = "set_motor_speed"     # [calibrator_interfaces/srv/SetFloat64] Sets the motor speed in deg/sec. Returns success (bool) and response message
+    SET_MOTOR_DIR       = "set_motor_dir"       # [calibrator_interfaces/srv/SetBool] Sets the motor direction. True for clockwise, False for counter-clockwise. Returns success (bool) and message
+    STEP                = "step"                # [std_srvs/srv/Empty] Increments the motor a single step
+    ZERO_MAGNETOMETER   = "zero_magnetometer"   # [std_srvs/srv/Trigger] Resets the magnetometer bias to current average. Returns success (bool) and message
+    HOME                = "home"                # [std_srvs/srv/Trigger] Resets the plate to the "home" position (magnet directly on top of magnetometer). Returns success (bool) and message
     
     # rosbag recorder
     IS_PAUSED       = "is_paused"       # [rosbag2_interfaces/srv/IsPaused] Returns whether recording is currently paused.
