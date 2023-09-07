@@ -24,15 +24,22 @@ from rclpy.node import Node
 from std_srvs.srv import Trigger, Empty
 from calibrator_interfaces.srv import SetFloat64, SetBool
 from DRV8825 import DRV8825, StepModes, MicroSteps
+from AMT22 import AMT22
 from calibrator_common.common.parameters import ParameterNames, get_integer_parameter, get_integer_array_parameter, get_boolean_parameter
 from calibrator_common.common.service_client import ServiceNames
 
-class DRV8825Node(DRV8825, Node):
-    target_velocity : float = 360
+class CalibratorPlateNode(Node):
+    _controller: DRV8825
+    _encoder: AMT22
     
     def __init__(self):
-        Node.__init__(self, 'DRV8825Node')
+        super().__init__(self, 'DRV8825Node')
         
+        # ========================
+        # == DECLARE PARAMETERS ==
+        # ========================
+        
+        # DRV8825 Parameters
         self.declare_parameter(ParameterNames.DIR_PIN.value, 13)
         self.declare_parameter(ParameterNames.STEP_PIN.value, 19)
         self.declare_parameter(ParameterNames.ENABLE_PIN.value, 12)
@@ -40,18 +47,35 @@ class DRV8825Node(DRV8825, Node):
         self.declare_parameter(ParameterNames.STEP_MODE.value, StepModes.HARDWARE.value)
         self.declare_parameter(ParameterNames.MICRO_STEPS.value, MicroSteps.FULL_STEP.value)
         
+        # AMT22 Parameters
+        self.declare_parameter(ParameterNames.ENCODER_RESOLUTION.value, 14)
+        self.declare_parameter(ParameterNames.ENCODER_PORT.value, 0)
+        self.declare_parameter(ParameterNames.ENCODER_CS_PIN.value, 0)
+        self.declare_parameter(ParameterNames.ENCODER_BUS_SPEED.value, 500000)
+        self.declare_parameter(ParameterNames.ENCODER_BUS_DELAY.value, 3)
+        
+        # MLX90393 Parameters
+        
+        # ====================
+        # == GET PARAMETERS ==
+        # ====================
+        
+        # DRV8825 Parameters
         dir_pin = get_integer_parameter(self, ParameterNames.DIR_PIN.value)
         step_pin = get_integer_parameter(self, ParameterNames.STEP_PIN.value)
         enable_pin = get_integer_parameter(self, ParameterNames.ENABLE_PIN.value)
         mode_pins = get_integer_array_parameter(self, ParameterNames.MODE_PINS.value)
-        self._step_mode = get_boolean_parameter(self, ParameterNames.STEP_MODE.value)
+        step_mode = get_boolean_parameter(self, ParameterNames.STEP_MODE.value)
         micro_steps = get_integer_parameter(self, ParameterNames.MICRO_STEPS.value)
+        
+        # AMT22 Parameters
+        encoder_resolution = get_integer_parameter(self, ParameterNames.ENCODER_RESOLUTION.value)
         		
         self.get_logger().info(f"Using direction pin: {dir_pin}")
         self.get_logger().info(f"Using step pin: {step_pin}")
         self.get_logger().info(f"Using enable pin: {enable_pin}")
         self.get_logger().info(f"Using mode pins: {mode_pins}")
-        self.get_logger().info(f"Using step mode: {self._step_mode}")
+        self.get_logger().info(f"Using step mode: {step_mode}")
         self.get_logger().info(f"Using microsteps: {micro_steps}")
         
         DRV8825.__init__(self,

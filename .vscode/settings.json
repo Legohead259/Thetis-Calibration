@@ -3,6 +3,7 @@
         "./build/calibrator_common"
     ],
     "cSpell.words": [
-        "astype"
+        "astype",
+        "rosbag"
     ]
 }

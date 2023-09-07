@@ -19,13 +19,22 @@ from enum import Enum
 
 
 class ParameterNames(str, Enum):
-    # DRV8825 Node
-    DIR_PIN     = "dir_pin"
-    STEP_PIN    = "step_pin"
-    ENABLE_PIN  = "enable_pin"
-    MODE_PINS   = "mode_pins"
-    STEP_MODE   = "step_mode"
-    MICRO_STEPS = "micro_steps"
+    # Calibrator Plate Node
+    DIR_PIN             = "dir_pin"
+    STEP_PIN            = "step_pin"
+    ENABLE_PIN          = "enable_pin"
+    MODE_PINS           = "mode_pins"
+    STEP_MODE           = "step_mode"
+    MICRO_STEPS         = "micro_steps"
+    ENCODER_RESOLUTION  = "encoder_resolution"
+    ENCODER_PORT        = "encoder_port"
+    ENCODER_CS_PIN      = "encoder_cs_pin"
+    ENCODER_BUS_SPEED   = "encoder_bus_speed"
+    ENCODER_BUS_DELAY   = "encoder_bus_delay"
+    
+    # Master Node
+    ROSBAG_UUID = "rosbag_uuid"
+    ROSBAG_PATH = "rosbag_path"
     
     # MLX90393 Node
     MLX90393_I2C_ADDRESS = "i2c_address"

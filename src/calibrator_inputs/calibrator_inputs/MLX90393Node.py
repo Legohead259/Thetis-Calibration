@@ -31,7 +31,7 @@ import numpy as np
 from rclpy.node import Node
 import adafruit_mlx90393
 from calibrator_common.common.parameters import ParameterNames, get_integer_parameter
-from calibrator_common.common.pub_sub import TopicNames, PlateDirections
+from calibrator_common.common.pub_sub import TopicNames, PlateDirection
 from calibrator_common.common.service_client import ServiceNames
 from calibrator_interfaces.msg import Magnetic, MagnetDetect
 from std_srvs.srv import Trigger
@@ -44,7 +44,7 @@ class MLX90393Node(Node):
     _offsets = np.array([0, 0, 0])
     _last_reading = 0
     _last_peak_call_time = 0
-    _peak_call_timeout = 0.01
+    _peak_call_timeout = 0.1
     
     def __init__(self):
         super().__init__("MLX90393Node")
@@ -64,7 +64,7 @@ class MLX90393Node(Node):
         self.magnet_detect_publisher = self.create_publisher(MagnetDetect, TopicNames.MAGNET_DETECT.value, 10)
         
         # Create callback timers
-        self.timer = self.create_timer(0.1, self.poll)
+        self.timer = self.create_timer(0.01, self.poll)
         
         # Create services
         self.zero_magnetometer_service = self.create_service(Trigger, ServiceNames.ZERO_MAGNETOMETER.value, self.zero_magnetometer_callback)
@@ -111,33 +111,28 @@ class MLX90393Node(Node):
             mag_y=bias_readings[1],
             mag_z=bias_readings[2]
         ))
-        direction = self.detect_direction(bias_readings[1])
-        peak_detected = self.detect_peak(bias_readings)
         
-        if direction and peak_detected:
-            if time.monotonic() - self._last_peak_call_time > self._peak_call_timeout:
-                self.magnet_detect_publisher.publish(MagnetDetect(
-                    timestamp=time.monotonic_ns(),
-                    dir=direction.value
-                ))
-        
+        if self.detect_peak(bias_readings):
+            if not self._sent_peak_notice:
+                self.magnet_detect_publisher.publish()
         
     def detect_direction(self, current_reading: int):
         if self._last_reading < 0 and current_reading >= 0:
-            direction = PlateDirections.COUNTER_CLOCKWISE
+            direction = PlateDirection.COUNTER_CLOCKWISE
         elif self._last_reading > 0 and current_reading <= 0:
-            direction = PlateDirections.CLOCKWISE
+            direction = PlateDirection.CLOCKWISE
         else:
             direction = None
         
         self._last_reading = current_reading
         
         if direction:
-            self.get_logger().debug(f"Detected y-axis zero crossing: {direction}")
-            return direction
+            self.get_logger().info(f"Detected y-axis zero crossing: {direction}")
+        
+        return direction
         
     def detect_peak(self, readings: tuple[int, int, int]):
-        return np.sqrt(readings[0]**2 + readings[2]**2) >= 30000
+        return np.sqrt(readings[0]**2 + readings[2]**2) >= 2000
         
     def zero_magnetometer_callback(self, request, response):
         self.calculate_offsets()

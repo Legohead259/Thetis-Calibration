@@ -64,7 +64,7 @@ class XioDeviceNode(Node):
         self.get_logger().info(f"Listening for data from device through port: {self._udp_receive_port}")
         
         # Create publishers
-        self.inertial_measurements_publisher = self.create_publisher(Inertial, TopicNames.INERTIAL_MESSAGES.value, 10)
+        self.inertial_measurements_publisher = self.create_publisher(Inertial, TopicNames.INERTIAL.value, 10)
         
         self.get_logger().info(f"Sending inertial measurement data to topic: {self.inertial_measurements_publisher.topic_name}")
         

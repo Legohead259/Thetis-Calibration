@@ -14,50 +14,55 @@ __maintainer__  = "Braidan Duffy"
 __email__       = "bduffy2018@my.fit.edu"
 __status__      = "Prototype"
 
-import launch
+from launch import LaunchDescription
+from launch.substitutions import LaunchConfiguration
+from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch_ros.actions import Node
 from uuid import uuid4
+from calibrator_common.common.parameters import ParameterNames
 
 
-def generate_launch_description():
-    ld = launch.LaunchDescription()
-    
-    recorder_initialize = launch.actions.ExecuteProcess(
-        cmd=['ros2', 'bag', 'record', '/inertial', '-o', f'bags/{uuid4()}'],
-        output="both"
-    )
-    
-    recorder_pause = launch.actions.ExecuteProcess(
-        cmd=["ros2", "service", "call", "/rosbag2_recorder/pause", "rosbag2_interfaces/srv/Pause"]
-    )
-    
-    motor_controller_node = Node(
-        package="calibrator_plate",
-        executable="drv8825"
-    )
-
-    master_node = Node(
-        package="calibrator_master",
-        executable="master"
-    )
-    
-    xio_device_node = Node(
-        package="xio_device",
-        executable="XioDeviceNode",
-        # arguments=['--ros-args', '--log-level', 'debug'],
-    )
-    
-    motor_zero_speed = launch.actions.ExecuteProcess(
-        cmd=['ros2', 'service', 'call', '/set_motor_speed', 'thetis_interfaces/msg/SetFloat64', '"{data: 0.0}"']
-    )
-
-    ld.add_action(recorder_initialize)
-    ld.add_action(recorder_pause)
-    ld.add_action(motor_controller_node)
-    ld.add_action(master_node)
-    ld.add_action(xio_device_node)
-    ld.add_action(motor_zero_speed)
-
-    # TODO: Send service call to set motor speed to 0
-    
-    return ld
+def generate_launch_description():     
+    rosbag_uuid = str(uuid4())
+    rosbag_path = f"bags/{rosbag_uuid}/"
+        
+    return LaunchDescription([      
+        # Recorder initialize
+        ExecuteProcess(
+            cmd=['ros2', 'bag', 'record', '/inertial', '-o', rosbag_path],
+            output="both"
+        ),
+        
+        # Pause recorder immediately
+        ExecuteProcess(
+            cmd=["ros2", "service", "call", "/rosbag2_recorder/pause", "rosbag2_interfaces/srv/Pause"]
+        ),
+        
+        # Spin up master node
+        Node(
+            package="calibrator_master",
+            executable="master",
+            parameters=[{
+                ParameterNames.ROSBAG_UUID.value: rosbag_uuid,
+                ParameterNames.ROSBAG_PATH.value: rosbag_path
+            }]
+        ),
+        
+        # Spin up calibrator plate node
+        Node(
+            package="calibrator_plate",
+            executable="drv8825"
+        ),
+        
+        # Spin up xio device node
+        Node(
+            package="xio_device",
+            executable="XioDeviceNode",
+            # arguments=['--ros-args', '--log-level', 'debug'],
+        ),
+        
+        # Set motor speed to zero
+        ExecuteProcess(
+            cmd=['ros2', 'service', 'call', '/set_motor_speed', 'calibrator_interfaces/SetFloat64', '{data: 0.0}']
+        ),
+    ])

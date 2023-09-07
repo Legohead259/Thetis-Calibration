@@ -26,6 +26,7 @@ import rosbag2_py as rosbag
 from std_srvs.srv import Trigger
 from calibrator_interfaces.srv import XioCmd, TestTrigger
 from calibrator_interfaces.msg import Inertial
+from calibrator_common.common.parameters import ParameterNames, get_string_parameter
 from calibrator_common.common.service_client import ServiceNames, create_client
 from calibrator_common.common.pub_sub import TopicNames
 
@@ -34,15 +35,19 @@ class CalibrationMasterNode(Node):
         super().__init__("CalibrationMasterNode")
         
         # Declare parameters
+        self.declare_parameter(ParameterNames.ROSBAG_UUID.value, "192.168.1.1")
+        self.declare_parameter(ParameterNames.ROSBAG_PATH.value, "test")
         
-        # Get parameter values from node launch
+        self._rosbag_uuid = get_string_parameter(self, ParameterNames.ROSBAG_UUID.value)
+        self._rosbag_path = get_string_parameter(self, ParameterNames.ROSBAG_PATH.value)
         
-        # Report parameter values
+        self.get_logger().info(f"Using rosbag UUID: {self._rosbag_uuid}")
+        self.get_logger().info(f"Looking for rosbags in the path: {self._rosbag_path}")
         
         # Create publishers
         
         # Create subscribers
-        self.subscription = self.create_subscription(Inertial, TopicNames.INERTIAL_MESSAGES.value, self.inertial_msg_callback, 10)
+        self.subscription = self.create_subscription(Inertial, TopicNames.INERTIAL.value, self.inertial_msg_callback, 10)
         self.subscription  # prevent unused variable warning
 
         # Create services
