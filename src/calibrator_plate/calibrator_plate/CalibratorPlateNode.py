@@ -30,10 +30,9 @@ from calibrator_common.common.service_client import ServiceNames
 
 class CalibratorPlateNode(Node):
     _controller: DRV8825
-    _encoder: AMT22
     
     def __init__(self):
-        super().__init__(self, 'DRV8825Node')
+        super().__init__('CalibratorPlateNode')
         
         # ========================
         # == DECLARE PARAMETERS ==
@@ -47,29 +46,16 @@ class CalibratorPlateNode(Node):
         self.declare_parameter(ParameterNames.STEP_MODE.value, StepModes.HARDWARE.value)
         self.declare_parameter(ParameterNames.MICRO_STEPS.value, MicroSteps.FULL_STEP.value)
         
-        # AMT22 Parameters
-        self.declare_parameter(ParameterNames.ENCODER_RESOLUTION.value, 14)
-        self.declare_parameter(ParameterNames.ENCODER_PORT.value, 0)
-        self.declare_parameter(ParameterNames.ENCODER_CS_PIN.value, 0)
-        self.declare_parameter(ParameterNames.ENCODER_BUS_SPEED.value, 500000)
-        self.declare_parameter(ParameterNames.ENCODER_BUS_DELAY.value, 3)
-        
-        # MLX90393 Parameters
-        
         # ====================
         # == GET PARAMETERS ==
         # ====================
         
-        # DRV8825 Parameters
         dir_pin = get_integer_parameter(self, ParameterNames.DIR_PIN.value)
         step_pin = get_integer_parameter(self, ParameterNames.STEP_PIN.value)
         enable_pin = get_integer_parameter(self, ParameterNames.ENABLE_PIN.value)
         mode_pins = get_integer_array_parameter(self, ParameterNames.MODE_PINS.value)
         step_mode = get_boolean_parameter(self, ParameterNames.STEP_MODE.value)
         micro_steps = get_integer_parameter(self, ParameterNames.MICRO_STEPS.value)
-        
-        # AMT22 Parameters
-        encoder_resolution = get_integer_parameter(self, ParameterNames.ENCODER_RESOLUTION.value)
         		
         self.get_logger().info(f"Using direction pin: {dir_pin}")
         self.get_logger().info(f"Using step pin: {step_pin}")
@@ -78,14 +64,10 @@ class CalibratorPlateNode(Node):
         self.get_logger().info(f"Using step mode: {step_mode}")
         self.get_logger().info(f"Using microsteps: {micro_steps}")
         
-        DRV8825.__init__(self,
-                         dir_pin,
-                         step_pin,
-                         enable_pin,
-                         mode_pins,
-                         micro_steps)
+        # =====================
+        # == CREATE SERVICES ==
+        # =====================
         
-        # Create services
         self.start_motor_service = self.create_service(Trigger, ServiceNames.START_MOTOR.value, self.enable_motor_callback)
         self.stop_motor_service = self.create_service(Trigger, ServiceNames.STOP_MOTOR.value, self.disable_motor_callback)
         self.set_motor_speed_service = self.create_service(SetFloat64, ServiceNames.SET_MOTOR_SPEED.value, self.set_speed_callback)
@@ -93,11 +75,23 @@ class CalibratorPlateNode(Node):
         self.step_service = self.create_service(Empty, ServiceNames.STEP.value, self.step_callback)
         
         self.get_logger().info("Initialized services")
+        
+        # ========================================
+        # == INITIALIZE NODE-SPECIFIC VARIABLES ==
+        # ========================================
+        
+        self._controller = DRV8825(dir_pin, step_pin, enable_pin, mode_pins, micro_steps)
+        
+    
+    # =========================
+    # === SERVICE CALLBACKS ===
+    # =========================
+    
                 
     def enable_motor_callback(self, request, response):
-        if not self._is_enabled:
-            self.enable()
-            self._step_pwm.start(50)
+        if not self._controller.is_enabled:
+            self._controller.enable()
+            self._controller.start()
             response.success = True
             response.message = "Motor started"
         else:
@@ -106,9 +100,9 @@ class CalibratorPlateNode(Node):
         return response
 
     def disable_motor_callback(self, request, response):
-        if self._is_enabled:
-            self.disable()
-            self._step_pwm.stop()
+        if self._controller.is_enabled:
+            self._controller.disable()
+            self._controller.stop()
             response.success = True
             response.message = "Motor stopped"
         else:
@@ -118,10 +112,10 @@ class CalibratorPlateNode(Node):
 
     def set_speed_callback(self, request, response):
         if (request.data == 0):
-            self._step_pwm.stop()
+            self._controller.stop()
         else:
-            self._step_pwm.start(50)
-            self._step_pwm.ChangeFrequency(self.calculate_step_frequency(request.data))
+            self._controller.start()
+            self._controller.pwm_frequency = self._controller.calculate_step_frequency(request.data)
         response.success = True
         response.message = f"Motor speed set to {request.data} deg/sec"
         return response
@@ -140,12 +134,11 @@ class CalibratorPlateNode(Node):
 def main(args=None):
     try:
         rclpy.init(args=args)
-        stepper_node = DRV8825Node()
-        rclpy.spin(stepper_node)
+        node = CalibratorPlateNode()
+        rclpy.spin(node)
         rclpy.shutdown()
     finally:
-        stepper_node.disable()
-        stepper_node.cleanup_gpio()
+        node.destroy_node()
 
 
 if __name__ == '__main__':

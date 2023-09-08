@@ -51,7 +51,7 @@ def generate_launch_description():
         # Spin up calibrator plate node
         Node(
             package="calibrator_plate",
-            executable="drv8825"
+            executable="plate"
         ),
         
         # Spin up xio device node

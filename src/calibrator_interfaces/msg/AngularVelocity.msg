@@ -1,0 +1,2 @@
+uint32 timestamp
+float64 angular_velocity

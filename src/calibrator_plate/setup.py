@@ -10,7 +10,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('lib/' + package_name, [package_name+'/DRV8825.py'])
+        ('lib/' + package_name, [package_name+'/DRV8825.py', package_name+'/AMT22.py'])
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -21,7 +21,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'drv8825 = calibrator_plate.DRV8825Node:main'
+            'plate = calibrator_plate.CalibratorPlateNode:main',
+            'encoder = calibrator_plate.AMT22Node:main',
+            'magnetometer = calibrator_plate.MLX90393Node:main'
         ],
     },
 )

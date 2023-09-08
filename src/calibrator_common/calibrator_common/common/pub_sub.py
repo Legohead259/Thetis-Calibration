@@ -20,6 +20,9 @@ class TopicNames(str, Enum):
     INERTIAL = "inertial"
     PLATE_MAGNETOMETER = "plate/magnetometer"
     MAGNET_DETECT = "magnet_detect"
+    ENCODER_ANGULAR_VELOCITY = "encoder/angular_velocity"
+    ENCODER_ANGLE = "encoder/angle"
+    ENCODER_POSITION = "encoder/position"
     
 
 class PlateDirection(Enum):

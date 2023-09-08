@@ -56,6 +56,8 @@ class AMT22():
         self._delay_us = delay
         self._spi = spidev.SpiDev()
         
+        self._spi.open(self._port, self._cs)
+        
     def reset(self):
         """Hex command sequence: [0x00 0x60]
         The encoder responds with the current position over the transmission then immediately resets.
@@ -102,7 +104,7 @@ class AMT22():
     
     
     @property
-    def position(self) -> tuple(int, bool):
+    def position(self) -> tuple[int, bool]:
         """Get the current position of the encoder
 
         Returns:
@@ -112,7 +114,7 @@ class AMT22():
         result = self._spi.xfer2([AMT22Registers.NOP.value, AMT22Registers.NOP.value], self._speed, self._delay_us)
         position = result[0]<<8 | result[1]    # Concatenate two bytes into 16-bit value
         data_good = AMT22.checksum(position)
-        position = position & 0x3FFC if self._resolution == AMT22Types.AMT22_A else position & 0x3FFF # Drop checkbits and 2 LSB (AMT22A only)
+        position = position & 0x3FFC if self._resolution == 12 else position & 0x3FFF # Drop checkbits and 2 LSB (AMT22A only)
         return (position, data_good)
     
     @property
@@ -122,7 +124,7 @@ class AMT22():
         Returns:
             float: The current angle in degrees
         """
-        return self.get_position() * (360.0/2**self._resolution.value)
+        return self.position[0] * (360.0/2**self._resolution)
     
     @property
     def port(self, value: int):

@@ -64,30 +64,6 @@ class DRV8825():
         GPIO.setup(self._mode_pins, GPIO.OUT)
         
         self._step_pwm = GPIO.PWM(self._step_pin, 1) # Create PWM channel at 1 Hz
-        
-    def calculate_step_delay(self, velocity: float) -> float:
-        """Calculates the time between steps where the `step_pin` goes high then low again.
-        This interval determines how fast the motor rotates.
-
-        Args:
-            velocity (float): the target angular velocity of the motor in degrees per second
-
-        Returns:
-            float: the time between the step pin going high the low again, in seconds
-        """
-        return (self._step_deg) / (2 * velocity * self._micro_steps)
-    
-    def calculate_step_frequency(self, velocity: float) -> float:
-        """Calculates the number of steps will occur in a second given a target angular velocity
-        This determines how fast the motor rotates.
-
-        Args:
-            velocity (float): the target angular velocity of the motor in degrees per second
-
-        Returns:
-            float: the total number of steps that will occur in a given second at the target velocity
-        """
-        return 1 / self.calculate_step_delay(velocity)
     
     def turn_steps(self, motor_dir: MotorDirection, steps: int, step_delay: float=0.0025):
         """Rotates the motor a given number of steps using the specified delay.
@@ -125,9 +101,51 @@ class DRV8825():
             motor_dir (MotorDirection): the motor direction; 0 (false) for counter-clockwise, 1 (true) for clockwise
         """
         self._motor_dir = motor_dir
-        self.digital_write(self._dir_pin, motor_dir)
+        self.digital_write(self._dir_pin, motor_dir)       
+    
+    
+    # ==================
+    # === PROPERTIES ===
+    # ==================
+    
+    
+    @property
+    def is_enabled(self):
+        """Returns the current internal enabled state
+        """
+        return self._is_enabled
+    
+    def enable(self):
+        """Enables the motor both physically and in the internal state
+        """
+        self._is_enabled = True
+        self.digital_write(self._enable_pin, True)
+    
+    def disable(self):
+        """Disables the motor both physically and in the internal state
+        """
+        self._is_enabled = False
+        self.digital_write(self._enable_pin, False)
         
-    def set_micro_step(self, mode: StepModes, step_format: MicroSteps):
+    def start(self):
+        self._step_pwm.start(50)
+        
+    def stop(self):
+        self._step_pwm.stop()
+    
+    @property
+    def micro_step(self):
+        current_setting = self.digital_read(self._mode_pins)
+        if   (0,0,0) == current_setting: return MicroSteps.FULL_STEP
+        elif (1,0,0) == current_setting: return MicroSteps.HALF_STEP
+        elif (0,1,0) == current_setting: return MicroSteps.QUARTER_STEP
+        elif (1,1,0) == current_setting: return MicroSteps.EIGHTH_STEP
+        elif (0,0,1) == current_setting: return MicroSteps.SIXTEENTH_STEP
+        elif (1,0,1) == current_setting: return MicroSteps.THIRTY_SECOND_STEP
+            
+        
+    @micro_step.setter
+    def micro_step(self, val: tuple[StepModes, MicroSteps]):
         """Sets the mode control pins to those appropriate for the different micro step modes.
         This mode does *not* supercede the physical mode switches present, therefore,
         in order for software control to work, each of the DIP switches must be set to 0 (low)
@@ -135,38 +153,64 @@ class DRV8825():
         Args:
             mode (StepMode): the microstep set mode. 0 (false) for hardware, 1 (true) for software.
             
-            stepformat (MicroSteps): the step format used for the motor controller; found 
+            step_format (MicroSteps): the step format used for the motor controller; found 
             within the MicroSteps enum
         """
-        microstep = [(0, 0, 0), # FULL_STEP
-                     (1, 0, 0), # HALF_STEP
-                     (0, 1, 0), # QUARTER_STEP
-                     (1, 1, 0), # EIGHTH_STEP 
-                     (0, 0, 1), # SIXTEENTH_STEP
-                     (1, 0, 1)] # THIRTY_SECOND_STEP
-        self._mode = mode
-        self._micro_steps = step_format
-        
-        if (mode.value):
-            self.digital_write(self.mode_pins, microstep[ceil(log2(step_format.value))])        
+        try:
+            mode, step_format = val
+        except ValueError:
+            raise ValueError("Argument must be an iterable with StepMode and MicroSteps")
+        else:
+            microstep = [(0, 0, 0), # FULL_STEP
+                        (1, 0, 0), # HALF_STEP
+                        (0, 1, 0), # QUARTER_STEP
+                        (1, 1, 0), # EIGHTH_STEP 
+                        (0, 0, 1), # SIXTEENTH_STEP
+                        (1, 0, 1)] # THIRTY_SECOND_STEP
+            self._mode = mode
+            self._micro_steps = step_format
             
-    def enable(self):
-        """Enables the motor both physically and in the internal state
+            if (mode.value):
+                self.digital_write(self._mode_pins, microstep[ceil(log2(step_format.value))])
+                
+    @property
+    def pwm_frequency(self):
+        pass
+    
+    @pwm_frequency.setter
+    def pwm_frequency(self, value: int):
+        self._step_pwm.ChangeFrequency(value)
+    
+    
+    # =========================
+    # === UTILITY FUNCTIONS ===
+    # =========================
+    
+    
+    def calculate_step_delay(self, velocity: float) -> float:
+        """Calculates the time between steps where the `step_pin` goes high then low again.
+        This interval determines how fast the motor rotates.
+
+        Args:
+            velocity (float): the target angular velocity of the motor in degrees per second
+
+        Returns:
+            float: the time between the step pin going high the low again, in seconds
         """
-        self._is_enabled = True
-        self.digital_write(self._enable_pin, True)
-            
-    def disable(self):
-        """Disables the motor both physically and in the internal state
+        return (self._step_deg) / (2 * velocity * self._micro_steps)
+    
+    def calculate_step_frequency(self, velocity: float) -> float:
+        """Calculates the number of steps will occur in a second given a target angular velocity
+        This determines how fast the motor rotates.
+
+        Args:
+            velocity (float): the target angular velocity of the motor in degrees per second
+
+        Returns:
+            float: the total number of steps that will occur in a given second at the target velocity
         """
-        self._is_enabled = False
-        self.digital_write(self._enable_pin, False)
-        
-    def cleanup_gpio(self):
-        """Resets all the GPIO to input and removes and pullup or pulldown settings
-        """
-        GPIO.cleanup()
-            
+        return 1 / self.calculate_step_delay(velocity)
+    
     def digital_write(self, pin: int, value: bool):
         """Writes a digital value (true/false) to a given pin 
 
@@ -186,6 +230,12 @@ class DRV8825():
             bool: the digital state of the pin; 0 (false) for LOW, 1 (true) for HiGH
         """
         return GPIO.read(pin)
+    
+    def cleanup_gpio(self):
+        """Resets all the GPIO to input and removes and pullup or pulldown settings
+        """
+        GPIO.cleanup()
+        
 
 if __name__ == "__main__":
     try:
