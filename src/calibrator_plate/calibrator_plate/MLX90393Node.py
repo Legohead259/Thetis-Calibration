@@ -29,11 +29,13 @@ import rclpy
 import time
 import numpy as np
 from rclpy.node import Node
+from rclpy.action import ActionServer
 import adafruit_mlx90393
 from calibrator_common.common.parameters import ParameterNames, get_integer_parameter
 from calibrator_common.common.pub_sub import TopicNames, PlateDirection
 from calibrator_common.common.service_client import ServiceNames
 from calibrator_interfaces.msg import Magnetic, MagnetDetect
+from calibrator_interfaces.action import Home
 from std_srvs.srv import Trigger
 
 
@@ -45,6 +47,7 @@ class MLX90393Node(Node):
     _last_reading = 0
     _last_peak_call_time = 0
     _peak_call_timeout = 0.1
+    _sent_peak_notice = False
     
     def __init__(self):
         super().__init__("MLX90393Node")
@@ -68,7 +71,8 @@ class MLX90393Node(Node):
         
         # Create services
         self.zero_magnetometer_service = self.create_service(Trigger, ServiceNames.ZERO_MAGNETOMETER.value, self.zero_magnetometer_callback)
-        
+        self.magnet_detect_service = self.create_service(Trigger, "magnet_detect", self.magnet_detect_callback)
+            
         self.get_logger().info(f"Awaiting zero magnetometer service requests to be sent to /{ServiceNames.ZERO_MAGNETOMETER}")
 
         # Create node-specific variables
@@ -79,7 +83,6 @@ class MLX90393Node(Node):
     # =========================
     # === SENSING FUNCTIONS ===
     # =========================
-    
     
     def calculate_offsets(self):
         start_time = time.monotonic()
@@ -104,18 +107,24 @@ class MLX90393Node(Node):
     
     
     def poll(self):
-        bias_readings = (np.array(self._sensor.read_data) - self._offsets).astype(float)
+        readings = np.array(self._sensor.read_data).astype(float)
+        # bias_readings = (readings - self._offsets).astype(float)
         self.plate_magnetometer_publisher.publish(Magnetic(
             timestamp=time.monotonic_ns(),
-            mag_x=bias_readings[0],
-            mag_y=bias_readings[1],
-            mag_z=bias_readings[2]
+            mag_x=readings[0],
+            mag_y=readings[1],
+            mag_z=readings[2]
         ))
         
-        if self.detect_peak(bias_readings):
+        if np.linalg.norm(readings) >= 40000:
             if not self._sent_peak_notice:
-                self.magnet_detect_publisher.publish()
-        
+                self.magnet_detect_publisher.publish(MagnetDetect(
+                    timestamp=time.monotonic_ns()
+                ))
+                self._sent_peak_notice = True
+        else:
+            self._sent_peak_notice = False
+            
     def detect_direction(self, current_reading: int):
         if self._last_reading < 0 and current_reading >= 0:
             direction = PlateDirection.COUNTER_CLOCKWISE
@@ -130,16 +139,22 @@ class MLX90393Node(Node):
             self.get_logger().info(f"Detected y-axis zero crossing: {direction}")
         
         return direction
-        
-    def detect_peak(self, readings: tuple[int, int, int]):
-        return np.sqrt(readings[0]**2 + readings[2]**2) >= 2000
-        
+    
     def zero_magnetometer_callback(self, request, response):
         self.calculate_offsets()
         response.success = True
         response.message = f"Set offsets to: {self._offsets}"
         return response
-        
+    
+    def magnet_detect_callback(self, request, response):
+        self.get_logger().info("Looking for magnet...")
+        while not np.linalg.norm(self._sensor.read_data) >= 45000: # 45000 good number
+            # self.poll()
+            pass
+        self.get_logger().info("Detected magnet")
+        response.success = True
+        response.message = "Detected magnet"
+        return response
 
 
 def main(args=None):

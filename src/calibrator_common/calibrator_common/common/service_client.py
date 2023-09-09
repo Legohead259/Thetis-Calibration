@@ -24,11 +24,11 @@ from enum import Enum
 class ServiceNames(str, Enum):
     # System
     START_TEST  = "start_test"  # [calibrator_interfaces/srv/TestTrigger] Tells the system to start the test number passed in the service call. Returns success (bool) and response message
-    STOP_TEST   = "stop_test"   # [std_srvs/src/Trigger] Stops the currently running test and resets.
+    STOP_TEST   = "stop_test"   # [std_srvs/srv/Trigger] Stops the currently running test and resets.
     ESTOP       = "estop"       # [std_srvs/srv/Trigger] Emergency stops the entire system.
     
     # xioAPI
-    XIO_SEND_CMD = "xio_send_cmd"   # [thetis_interfaces/srv/XioCmd] Sends a JSON command to an xioAPI-compatible device. Returns the response JSON message
+    XIO_SEND_CMD = "xio_send_cmd"   # [calibrator_interfaces/srv/XioCmd] Sends a JSON command to an xioAPI-compatible device. Returns the response JSON message
     
     # Plate
     START_MOTOR         = "start_motor"         # [std_srvs/srv/Trigger] Starts the motor. Returns success (bool) and response message
@@ -38,6 +38,8 @@ class ServiceNames(str, Enum):
     STEP                = "step"                # [std_srvs/srv/Empty] Increments the motor a single step
     ZERO_MAGNETOMETER   = "zero_magnetometer"   # [std_srvs/srv/Trigger] Resets the magnetometer bias to current average. Returns success (bool) and message
     HOME                = "home"                # [std_srvs/srv/Trigger] Resets the plate to the "home" position (magnet directly on top of magnetometer). Returns success (bool) and message
+    ZERO_ENCODER        = "zero_encoder"        # [std_srvs/srv/Trigger] Sets the current encoder position to 0. Must be stationary. Returns success (bool) and message
+    RESET_ENCODER       = "reset_encoder"       # [std_srvs/srv/Trigger] Soft restarts the encoder. Returns success (bool) and message
     
     # rosbag recorder
     IS_PAUSED       = "is_paused"       # [rosbag2_interfaces/srv/IsPaused] Returns whether recording is currently paused.

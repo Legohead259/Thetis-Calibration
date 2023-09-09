@@ -71,6 +71,15 @@ class AMT22Node(Node):
         self.angle_timer = self.create_timer(0.1, self.angle_callback)
         self.position_timer = self.create_timer(0.1, self.position_callback)
         
+        # =========================
+        # == INITIALIZE SERVICES ==
+        # =========================
+        
+        self.zero_encoder_service = self.create_service(Trigger, ServiceNames.ZERO_ENCODER.value, self.zero_encoder_callback)
+        self.reset_encoder_service = self.create_service(Trigger, ServiceNames.RESET_ENCODER.value, self.reset_encoder_callback)
+        
+        self.get_logger().info("Started services!")
+        
         # ========================================
         # == INITIALIZE NODE-SPECIFIC VARIABLES ==
         # ========================================
@@ -100,6 +109,23 @@ class AMT22Node(Node):
             position=position,
             is_valid=is_valid
         ))
+        
+    
+    # =========================
+    # === SERVICE CALLBACKS ===
+    # =========================
+    
+    
+    def zero_encoder_callback(self, request, response):
+        response.success = self._sensor.zero()
+        if response.success:
+            response.message = "Encoder zeroed!"
+        else:
+            response.message = "Failed to zero encoder. Is the plate rotating?"
+    
+    def reset_encoder_callback(self, request, response):
+        response.success = self._sensor.reset()
+        response.message = "Encoder reset"
     
     
 def main(args=None):

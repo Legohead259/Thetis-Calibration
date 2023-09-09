@@ -1,0 +1,6 @@
+# Request is empty
+---
+bool success
+string message
+---
+# Feedback is empty

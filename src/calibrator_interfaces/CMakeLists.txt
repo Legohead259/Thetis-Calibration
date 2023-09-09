@@ -36,6 +36,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetFloat64.srv"
   "srv/XioCmd.srv"
   "srv/TestTrigger.srv"
+  "action/Home.action"
 )
 
 ament_package()

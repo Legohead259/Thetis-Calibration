@@ -58,14 +58,18 @@ class AMT22():
         
         self._spi.open(self._port, self._cs)
         
-    def reset(self):
+    def reset(self) -> bool:
         """Hex command sequence: [0x00 0x60]
         The encoder responds with the current position over the transmission then immediately resets.
         Observe the power on time when using this command.
         Encoder must be stationary to power back on.
+        
+        Returns:
+            bool: When the power-on time has been observed and encoder reset
         """
         self._spi.xfer2([AMT22Registers.NOP.value, AMT22Registers.RESET.value], self._speed, self._delay_us)
         sleep(0.250) # Delay to allow the encoder to reset
+        return True
     
     def zero(self) -> bool:
         """
