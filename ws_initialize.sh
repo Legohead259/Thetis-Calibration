@@ -44,12 +44,12 @@ pip3 install PyQT5
 # Install xIMU3 support
 pip3 install ximu3
 
+# VS Code Extensions
+code --install-extension ms-python.python                       # Python/Pylance
+code --install-extension njpwerner.autodocstring                # AutoDocstring
+code --install-extension ms-vscode.cpptools                     # C++ Tools
+code --install-extension ms-vscode.cmake-tools                  # CMake Tools
+code --install-extension streetsidesoftware.code-spell-checker  # Code Spell Checker
+
 # Restart system
 sudo reboot
-
-# VS Code Extensions
-# 1. Python
-# 2. Pylance
-# 3. AutoDocstring
-# 4. CMake Tools
-# 5. Code SpellCheck
